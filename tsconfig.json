@@ -2,21 +2,19 @@
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "lib",
-    "target": "es5",
-    "module": "es2015",
+    "target": "es2019",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "jsx": "react",
-    "lib": [
-      "dom",
-      "esnext"
-    ],
+    "lib": ["dom", "es2019"],
+    "types": ["vitest/globals"],
     "declaration": true,
     "sourceMap": true,
-    "removeComments": false,
     "strict": true,
-    "noImplicitAny": true,
     "noImplicitReturns": true,
-    "noImplicitThis": true,
     "noUnusedLocals": true,
-    "moduleResolution": "node",
-  }
+    "skipLibCheck": true
+  },
+  "include": ["src"],
+  "exclude": ["src/**/__tests__"]
 }
