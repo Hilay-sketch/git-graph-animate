@@ -13,7 +13,16 @@ export const Dot: React.FC<DotProps> = ({
   onMouseOut,
 }) => {
   if (commit.renderDot) {
-    return commit.renderDot(commit);
+    // Same handlers as the default dot: clicks and tooltips still work.
+    return (
+      <g
+        onClick={commit.onClick}
+        onMouseOver={onMouseOver}
+        onMouseOut={onMouseOut}
+      >
+        {commit.renderDot(commit)}
+      </g>
+    );
   }
 
   return (

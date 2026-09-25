@@ -39,7 +39,7 @@ describe("assignDelays", () => {
     expect(delays.get("c98->c99")).toBe(1485);
   });
 
-  it("gives an added commit delay 0 and keeps existing delays", () => {
+  it("delays added commits by the charge time and keeps existing delays", () => {
     const delays = new Map<string, number>();
     assignDelays([commit("a"), commit("b")], [edge("a", "b")], delays, timing);
 
@@ -51,12 +51,35 @@ describe("assignDelays", () => {
     );
 
     expect(delays.get("a->b")).toBe(300);
-    expect(delays.get("b->c")).toBe(0);
-    expect(delays.get("c")).toBe(300);
+    // Lines shoot out once the parent has charged (CHARGE_MS = 450).
+    expect(delays.get("b->c")).toBe(450);
+    expect(delays.get("c")).toBe(750);
     // Merge: both lines into d draw together.
-    expect(delays.get("b->d")).toBe(300);
-    expect(delays.get("c->d")).toBe(300);
-    expect(delays.get("d")).toBe(600);
+    expect(delays.get("b->d")).toBe(750);
+    expect(delays.get("c->d")).toBe(750);
+    expect(delays.get("d")).toBe(1050);
+  });
+
+  it("returns commits added after the first batch", () => {
+    const delays = new Map<string, number>();
+
+    const first = assignDelays([commit("a")], [], delays, timing);
+    const second = assignDelays(
+      [commit("a"), commit("b")],
+      [edge("a", "b")],
+      delays,
+      timing,
+    );
+    const third = assignDelays(
+      [commit("a"), commit("b")],
+      [edge("a", "b")],
+      delays,
+      timing,
+    );
+
+    expect(first).toEqual([]);
+    expect(second).toEqual(["b"]);
+    expect(third).toEqual([]);
   });
 
   it("shows a new line into an existing commit already drawn", () => {

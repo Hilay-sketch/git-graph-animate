@@ -15,6 +15,8 @@ export interface EdgeProps {
   duration: number;
   /** `false` when the `animation` prop disables animations. */
   animated: boolean;
+  /** Line into a commit added after the first render. */
+  added: boolean;
 }
 
 export function defaultEdge(edge: EdgeProps): React.ReactElement {
@@ -25,7 +27,7 @@ export function defaultEdge(edge: EdgeProps): React.ReactElement {
       stroke={edge.stroke}
       strokeWidth={edge.strokeWidth}
       pathLength={1}
-      className="gg-edge"
+      className={edge.added ? "gg-edge gg-added" : "gg-edge"}
       data-from={edge.from}
       data-to={edge.to}
       style={{ "--gg-delay": `${edge.delay}ms` } as React.CSSProperties}

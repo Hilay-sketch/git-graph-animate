@@ -31,6 +31,10 @@ import {
   ANIMATION_CSS,
   assignDelays,
   edgeKey,
+  charge,
+  chargeLine,
+  recoil,
+  CHARGE_MS,
 } from "./animation";
 
 export {
@@ -98,6 +102,14 @@ class Gitgraph extends React.Component<GitgraphProps, GitgraphState> {
   private $commits = React.createRef<SVGGElement>();
   // Animation delay (ms) of each commit hash and edge key, set once.
   private delays = new Map<string, number>();
+  // Commits added after the first render: they land with an impact.
+  private added = new Set<string>();
+  private pendingImpacts: Array<{
+    /** When the commit lands, in ms. */
+    delay: number;
+    /** Parents that charge before the line shoots out. */
+    parents: Array<CommitCore<ReactSvgElement>>;
+  }> = [];
   private unsubscribe = () => {};
 
   constructor(props: GitgraphProps) {
@@ -122,6 +134,8 @@ class Gitgraph extends React.Component<GitgraphProps, GitgraphState> {
           timing
             ? ({
                 "--gg-duration": `${timing.duration}ms`,
+                // Impact rings may burst past the graph's edges.
+                overflow: "visible",
               } as React.CSSProperties)
             : undefined
         }
@@ -136,6 +150,7 @@ class Gitgraph extends React.Component<GitgraphProps, GitgraphState> {
               <Commit
                 key={commit.hash}
                 delay={timing ? this.delays.get(commit.hash) : undefined}
+                added={this.added.has(commit.hash)}
                 commits={this.state.commits}
                 commit={commit}
                 setCurrentCommitOver={this.setCurrentCommitOver.bind(this)}
@@ -165,6 +180,8 @@ class Gitgraph extends React.Component<GitgraphProps, GitgraphState> {
   }
 
   public componentDidUpdate() {
+    this.playImpacts();
+
     if (this.$graph.current) {
       const { height, width } = this.$graph.current.getBBox();
       this.$graph.current.setAttribute(
@@ -214,7 +231,14 @@ class Gitgraph extends React.Component<GitgraphProps, GitgraphState> {
     if (timing) {
       // Only from/to matter here, not the geometry.
       const edges = toSvgEdges(branchesPaths, commits, false, false);
-      assignDelays(commits, edges, this.delays, timing);
+      assignDelays(commits, edges, this.delays, timing).forEach((hash) => {
+        this.added.add(hash);
+        const commit = commits.find((c) => c.hash === hash)!;
+        this.pendingImpacts.push({
+          delay: this.delays.get(hash)!,
+          parents: commits.filter((c) => commit.parents.includes(c.hash)),
+        });
+      });
     }
     return {
       commits,
@@ -222,6 +246,43 @@ class Gitgraph extends React.Component<GitgraphProps, GitgraphState> {
       commitMessagesX,
       shouldRecomputeOffsets: true,
     };
+  }
+
+  // Added commit: its parents charge (dot + incoming line), then the whole
+  // graph jolts when it lands. JS because these play on elements that are
+  // already mounted, where a CSS animation can't restart per commit.
+  private playImpacts() {
+    const svg = this.$graph.current;
+    const impacts = this.pendingImpacts.splice(0);
+    if (!svg || !svg.animate || !impacts.length) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const { isVertical, isReverse } = this.gitgraph;
+    const [dx, dy] = isVertical
+      ? [0, isReverse ? 1 : -1]
+      : [isReverse ? -1 : 1, 0];
+    const duration = this.timing!.duration;
+    impacts.forEach(({ delay, parents }) => {
+      const chargeAt = Math.max(0, delay - duration - CHARGE_MS);
+      parents.forEach((parent) => {
+        const color = parent.style.dot.color as string;
+        const dot = svg.querySelector(`[data-hash="${parent.hash}"] .gg-dot`);
+        if (dot) {
+          const [frames, options] = charge(color);
+          dot.animate(frames, { ...options, delay: chargeAt });
+        }
+        svg
+          .querySelectorAll<SVGPathElement>(
+            `.gg-edge[data-to="${parent.hash}"]`,
+          )
+          .forEach((line) => {
+            const width = Number(line.getAttribute("stroke-width")) || 2;
+            const [frames, options] = chargeLine(color, width);
+            line.animate(frames, { ...options, delay: chargeAt });
+          });
+      });
+      svg.animate(recoil(dx, dy), { delay, duration: 420 });
+    });
   }
 
   private setCurrentCommitOver(v: CommitCore<ReactSvgElement> | null) {
@@ -275,6 +336,7 @@ class Gitgraph extends React.Component<GitgraphProps, GitgraphState> {
               delay: this.delays.get(edgeKey(edge)) || 0,
               duration: timing ? timing.duration : 0,
               animated: !!timing,
+              added: this.added.has(edge.to),
             })}
           </React.Fragment>
         ))}

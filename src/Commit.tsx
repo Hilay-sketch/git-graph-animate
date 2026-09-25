@@ -17,6 +17,8 @@ interface CommitsProps {
   commitMessagesX: number;
   /** Fade-in delay in ms; `undefined` when not animated. */
   delay?: number;
+  /** Added after the first render: lands with an impact. */
+  added?: boolean;
 }
 
 export const Commit = (props: CommitsProps) => {
@@ -140,7 +142,7 @@ export const Commit = (props: CommitsProps) => {
   return (
     <g
       transform={`translate(${x}, ${y})`}
-      className="gg-commit"
+      className={props.added ? "gg-commit gg-added" : "gg-commit"}
       data-hash={commit.hash}
       style={
         props.delay === undefined
@@ -148,17 +150,33 @@ export const Commit = (props: CommitsProps) => {
           : ({ "--gg-delay": `${props.delay}ms` } as React.CSSProperties)
       }
     >
-      <Dot
-        commit={commit}
-        onMouseOver={() => {
-          props.setCurrentCommitOver(commit);
-          commit.onMouseOver();
-        }}
-        onMouseOut={() => {
-          props.setCurrentCommitOver(null);
-          commit.onMouseOut();
-        }}
-      />
+      {props.added &&
+        // Shockwave rings, behind the dot.
+        [0, 1].map((i) => (
+          <circle
+            key={i}
+            className="gg-ripple"
+            cx={commit.style.dot.size}
+            cy={commit.style.dot.size}
+            r={commit.style.dot.size}
+            fill="none"
+            stroke={commit.style.dot.color}
+          />
+        ))}
+      {/* Wrapper without a `transform` attribute, so CSS can scale the dot. */}
+      <g className="gg-dot">
+        <Dot
+          commit={commit}
+          onMouseOver={() => {
+            props.setCurrentCommitOver(commit);
+            commit.onMouseOver();
+          }}
+          onMouseOut={() => {
+            props.setCurrentCommitOver(null);
+            commit.onMouseOut();
+          }}
+        />
+      </g>
       {arrows}
       <g transform={`translate(${-x}, 0)`}>
         {commit.style.message.display && (
