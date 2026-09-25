@@ -2,8 +2,6 @@
 
 Draw pretty git graphs with React. A React-only fork of the archived [GitGraph.js](https://github.com/nicoespeon/gitgraph.js).
 
-![GitGraph.js](assets/logo/gitgraph-logo.png)
-
 ## Install
 
 ```sh
@@ -42,8 +40,6 @@ function MyComponent() {
   );
 }
 ```
-
-![Example of usage](assets/example-usage.png)
 
 `<Gitgraph>` also accepts `options` (`template`, `orientation`, `mode`, …) and, for imperative control, a `graph` prop created with `new GitgraphCore()`.
 
