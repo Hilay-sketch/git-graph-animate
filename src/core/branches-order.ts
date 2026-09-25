@@ -1,7 +1,7 @@
 import { Branch } from "./branch";
 import { Commit } from "./commit";
 
-export { BranchesOrder, CompareBranchesOrder };
+export { BranchesOrder, type CompareBranchesOrder };
 
 type Color = string;
 

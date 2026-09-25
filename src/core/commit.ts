@@ -4,7 +4,7 @@ import { Refs } from "./refs";
 import { Tag } from "./tag";
 import { GitgraphTagOptions } from "./user-api/gitgraph-user-api";
 
-export { CommitRenderOptions, CommitOptions, Commit };
+export { type CommitRenderOptions, type CommitOptions, Commit };
 
 interface CommitRenderOptions<TNode> {
   renderDot?: (commit: Commit<TNode>) => TNode;

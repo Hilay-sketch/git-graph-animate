@@ -19,7 +19,7 @@ import {
   GitgraphTagOptions,
 } from "./user-api/gitgraph-user-api";
 
-export { GitgraphOptions, GitgraphCore };
+export { type GitgraphOptions, GitgraphCore };
 
 interface GitgraphOptions {
   template?: TemplateName | Template;

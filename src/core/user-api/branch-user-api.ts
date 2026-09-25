@@ -9,7 +9,7 @@ import { Commit } from "../commit";
 import { Branch, createDeletedBranch } from "../branch";
 import { withoutUndefinedKeys, Omit } from "../utils";
 
-export { BranchUserApi, GitgraphMergeOptions };
+export { BranchUserApi, type GitgraphMergeOptions };
 
 interface GitgraphMergeOptions<TNode> {
   /**

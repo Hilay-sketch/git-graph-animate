@@ -3,7 +3,12 @@ import { Branch } from "./branch";
 import { CommitStyleBase } from "./template";
 import { pick } from "./utils";
 
-export { BranchesPaths, Coordinate, BranchesPathsCalculator, toSvgPath };
+export {
+  type BranchesPaths,
+  type Coordinate,
+  BranchesPathsCalculator,
+  toSvgPath,
+};
 
 type BranchesPaths<TNode> = Map<Branch<TNode>, Coordinate[][]>;
 

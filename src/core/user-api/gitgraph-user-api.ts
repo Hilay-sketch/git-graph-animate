@@ -11,9 +11,9 @@ import { Refs } from "../refs";
 import { BranchUserApi } from "./branch-user-api";
 
 export {
-  GitgraphCommitOptions,
-  GitgraphBranchOptions,
-  GitgraphTagOptions,
+  type GitgraphCommitOptions,
+  type GitgraphBranchOptions,
+  type GitgraphTagOptions,
   GitgraphUserApi,
 };
 

@@ -28,18 +28,19 @@ import { BranchPath } from "./BranchPath";
 
 export {
   Gitgraph,
-  GitgraphProps,
-  GitgraphState,
+  GitgraphCore,
+  type GitgraphProps,
+  type GitgraphState,
   TemplateName,
   templateExtend,
   MergeStyle,
   Mode,
   Orientation,
-  CommitOptions,
-  BranchOptions,
-  TagOptions,
-  MergeOptions,
-  Branch,
+  type CommitOptions,
+  type BranchOptions,
+  type TagOptions,
+  type MergeOptions,
+  type Branch,
 };
 
 type GitgraphProps = GitgraphPropsWithChildren | GitgraphPropsWithGraph;
@@ -80,7 +81,6 @@ class Gitgraph extends React.Component<GitgraphProps, GitgraphState> {
   private gitgraph: GitgraphCore<ReactSvgElement>;
   private $graph = React.createRef<SVGSVGElement>();
   private $commits = React.createRef<SVGGElement>();
-  private $tooltip: React.ReactElement<SVGGElement> | null = null;
 
   constructor(props: GitgraphProps) {
     super(props);
@@ -119,16 +119,14 @@ class Gitgraph extends React.Component<GitgraphProps, GitgraphState> {
                 key={commit.hash}
                 commits={this.state.commits}
                 commit={commit}
-                currentCommitOver={this.state.currentCommitOver}
                 setCurrentCommitOver={this.setCurrentCommitOver.bind(this)}
                 gitgraph={this.gitgraph}
                 getWithCommitOffset={this.getWithCommitOffset.bind(this)}
-                setTooltip={this.setTooltip.bind(this)}
                 commitMessagesX={this.state.commitMessagesX}
               />
             ))}
           </g>
-          {this.$tooltip}
+          {this.renderTooltip()}
         </g>
       </svg>
     );
@@ -171,8 +169,23 @@ class Gitgraph extends React.Component<GitgraphProps, GitgraphState> {
     this.setState({ currentCommitOver: v });
   }
 
-  private setTooltip(v: React.ReactElement<SVGGElement> | null) {
-    this.$tooltip = v;
+  private renderTooltip() {
+    const commit = this.state.currentCommitOver;
+    if (!commit) return null;
+    const showTooltip =
+      this.gitgraph.isHorizontal ||
+      (this.gitgraph.mode === Mode.Compact &&
+        commit.style.hasTooltipInCompactMode);
+    if (!showTooltip) return null;
+
+    const { x, y } = this.getWithCommitOffset(commit);
+    return (
+      <g transform={`translate(${x}, ${y})`}>
+        <Tooltip commit={commit}>
+          {commit.hashAbbrev} - {commit.subject}
+        </Tooltip>
+      </g>
+    );
   }
 
   private renderBranchesPaths() {

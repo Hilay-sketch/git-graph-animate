@@ -2,10 +2,10 @@ import { booleanOptionOr, numberOptionOr } from "./utils";
 
 export {
   MergeStyle,
-  BranchStyle,
-  CommitStyleBase,
-  CommitStyle,
-  TemplateOptions,
+  type BranchStyle,
+  type CommitStyleBase,
+  type CommitStyle,
+  type TemplateOptions,
   Template,
   TemplateName,
   blackArrowTemplate,

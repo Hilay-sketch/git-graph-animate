@@ -4,7 +4,7 @@ import { Orientation } from "./orientation";
 import { Coordinate } from "./branches-paths";
 
 export {
-  Omit,
+  type Omit,
   booleanOptionOr,
   numberOptionOr,
   pick,

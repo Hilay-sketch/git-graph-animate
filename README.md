@@ -51,6 +51,7 @@ function MyComponent() {
 
 ```sh
 pnpm install
+pnpm example     # showcase app (Vite) on localhost
 pnpm test        # vitest
 pnpm typecheck   # tsc --noEmit
 pnpm knip        # unused files/exports/deps

@@ -1,8 +1,7 @@
 import * as React from "react";
-import { GitgraphCore, Commit as CommitCore, Mode, Coordinate } from "./core";
+import { GitgraphCore, Commit as CommitCore, Coordinate } from "./core";
 import { ReactSvgElement } from "./types";
 import { Dot } from "./Dot";
-import { Tooltip } from "./Tooltip";
 import { Arrow } from "./Arrow";
 import { Message } from "./Message";
 import { Tag, TAG_PADDING_X } from "./Tag";
@@ -12,10 +11,8 @@ import { MutableRefObject } from "react";
 interface CommitsProps {
   commits: Array<CommitCore<ReactSvgElement>>;
   commit: CommitCore<ReactSvgElement>;
-  currentCommitOver: CommitCore<ReactSvgElement> | null;
   gitgraph: GitgraphCore<ReactSvgElement>;
   getWithCommitOffset: (props: any) => Coordinate;
-  setTooltip: (val: React.ReactElement<SVGGElement> | null) => void;
   setCurrentCommitOver: (val: CommitCore<ReactSvgElement> | null) => void;
   commitMessagesX: number;
 }
@@ -138,22 +135,6 @@ export const Commit = (props: CommitsProps) => {
     }
   }, [tagRefs, gitgraph, commitMessagesX]);
 
-  const shouldRenderTooltip =
-    props.currentCommitOver === commit &&
-    (props.gitgraph.isHorizontal ||
-      (props.gitgraph.mode === Mode.Compact &&
-        commit.style.hasTooltipInCompactMode));
-
-  if (shouldRenderTooltip) {
-    props.setTooltip(
-      <g transform={`translate(${x}, ${y})`}>
-        <Tooltip commit={commit}>
-          {commit.hashAbbrev} - {commit.subject}
-        </Tooltip>
-      </g>,
-    );
-  }
-
   return (
     <g transform={`translate(${x}, ${y})`}>
       <Dot
@@ -164,7 +145,6 @@ export const Commit = (props: CommitsProps) => {
         }}
         onMouseOut={() => {
           props.setCurrentCommitOver(null);
-          props.setTooltip(null);
           commit.onMouseOut();
         }}
       />

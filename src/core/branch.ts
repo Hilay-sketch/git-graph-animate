@@ -4,9 +4,9 @@ import { BranchUserApi } from "./user-api/branch-user-api";
 import { TemplateOptions, BranchStyle } from "./template";
 
 export {
-  BranchCommitDefaultOptions,
-  BranchRenderOptions,
-  BranchOptions,
+  type BranchCommitDefaultOptions,
+  type BranchRenderOptions,
+  type BranchOptions,
   DELETED_BRANCH_NAME,
   createDeletedBranch,
   Branch,
