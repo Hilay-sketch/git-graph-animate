@@ -164,6 +164,72 @@ function CustomRender() {
   );
 }
 
+function makeHistory() {
+  const graph = new GitgraphCore<React.ReactElement<SVGElement>>();
+  const main = graph.getUserApi().branch("main");
+  main.commit("Start");
+  const feature = main.branch("feature");
+  feature.commit("Build it").commit("Test it");
+  main.commit("Hotfix");
+  main.merge(feature);
+  return graph;
+}
+
+function Animation() {
+  const [on, setOn] = React.useState(true);
+  const [replay, setReplay] = React.useState(0);
+  // Remounting over an existing graph replays its initial draw.
+  const [graphs] = React.useState(() => [makeHistory(), makeHistory()]);
+
+  return (
+    <Section
+      title="Animation"
+      note="animation={{ duration }} slows it down; renderEdge draws each line yourself (here: dashed, drawn by your own CSS)."
+    >
+      <div style={{ marginBottom: 12 }}>
+        <label>
+          <input
+            type="checkbox"
+            checked={on}
+            onChange={(e) => setOn(e.target.checked)}
+          />{" "}
+          animation
+        </label>{" "}
+        <button onClick={() => setReplay(replay + 1)}>Replay</button>
+      </div>
+      <div style={{ display: "flex", gap: 48 }}>
+        <Gitgraph
+          key={`slow-${on}-${replay}`}
+          graph={graphs[0]}
+          animation={on && { duration: 800, maxTotal: 4000 }}
+        />
+        <Gitgraph
+          key={`custom-${on}-${replay}`}
+          graph={graphs[1]}
+          animation={on}
+          renderEdge={(edge) => (
+            <path
+              d={edge.d}
+              fill="none"
+              stroke={edge.stroke}
+              strokeWidth={edge.strokeWidth}
+              strokeDasharray="6 4"
+              style={
+                edge.animated
+                  ? {
+                      opacity: 0,
+                      animation: `fade-in ${edge.duration}ms ${edge.delay}ms forwards`,
+                    }
+                  : undefined
+              }
+            />
+          )}
+        />
+      </div>
+    </Section>
+  );
+}
+
 function LiveGraph() {
   const [{ graph, master }] = React.useState(() => {
     const graph = new GitgraphCore<React.ReactElement<SVGElement>>();
@@ -195,6 +261,7 @@ createRoot(document.getElementById("root")!).render(
     <Playground />
     <CustomTemplate />
     <CustomRender />
+    <Animation />
     <LiveGraph />
   </>,
 );

@@ -18,6 +18,6 @@ export { Orientation } from "./orientation";
 export {
   type BranchesPaths,
   type Coordinate,
-  toSvgPath,
+  toSvgEdges,
 } from "./branches-paths";
 export { arrowSvgPath } from "./utils";

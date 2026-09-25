@@ -11,6 +11,7 @@ import {
   templateExtend,
   BranchesPaths,
   Coordinate,
+  toSvgEdges,
 } from "./core";
 
 import { BranchLabel } from "./BranchLabel";
@@ -24,7 +25,13 @@ import {
   Branch,
 } from "./types";
 import { Commit } from "./Commit";
-import { BranchPath } from "./BranchPath";
+import { defaultEdge, EdgeProps } from "./Edge";
+import {
+  AnimationOptions,
+  ANIMATION_CSS,
+  assignDelays,
+  edgeKey,
+} from "./animation";
 
 export {
   Gitgraph,
@@ -41,16 +48,24 @@ export {
   type TagOptions,
   type MergeOptions,
   type Branch,
+  type EdgeProps,
 };
 
 type GitgraphProps = GitgraphPropsWithChildren | GitgraphPropsWithGraph;
 
-interface GitgraphPropsWithChildren {
+interface GitgraphPropsBase {
+  /** Draw lines in order and fade commits in. `false` disables it. Default: on. */
+  animation?: boolean | Partial<AnimationOptions>;
+  /** Render each line yourself, e.g. with an animation library. */
+  renderEdge?: (edge: EdgeProps) => React.ReactElement;
+}
+
+interface GitgraphPropsWithChildren extends GitgraphPropsBase {
   options?: GitgraphOptions;
   children: (gitgraph: GitgraphUserApi<ReactSvgElement>) => void;
 }
 
-interface GitgraphPropsWithGraph {
+interface GitgraphPropsWithGraph extends GitgraphPropsBase {
   graph: GitgraphCore<ReactSvgElement>;
 }
 
@@ -81,42 +96,46 @@ class Gitgraph extends React.Component<GitgraphProps, GitgraphState> {
   private gitgraph: GitgraphCore<ReactSvgElement>;
   private $graph = React.createRef<SVGSVGElement>();
   private $commits = React.createRef<SVGGElement>();
+  // Animation delay (ms) of each commit hash and edge key, set once.
+  private delays = new Map<string, number>();
+  private unsubscribe = () => {};
 
   constructor(props: GitgraphProps) {
     super(props);
-    this.state = {
-      commits: [],
-      branchesPaths: new Map(),
-      commitMessagesX: 0,
-      commitYWithOffsets: {},
-      shouldRecomputeOffsets: true,
-      currentCommitOver: null,
-    };
     this.gitgraph = isPropsWithGraph(props)
       ? props.graph
       : new GitgraphCore<ReactSvgElement>(props.options);
-    this.gitgraph.subscribe((data) => {
-      const { commits, branchesPaths, commitMessagesX } = data;
-      this.setState({
-        commits,
-        branchesPaths,
-        commitMessagesX,
-        shouldRecomputeOffsets: true,
-      });
-    });
+    // A `graph` may already hold commits: show them without waiting for a change.
+    this.state = {
+      ...this.fromRenderedData(this.gitgraph.getRenderedData()),
+      commitYWithOffsets: {},
+      currentCommitOver: null,
+    };
   }
 
   public render() {
+    const timing = this.timing;
     return (
-      <svg ref={this.$graph}>
+      <svg
+        ref={this.$graph}
+        style={
+          timing
+            ? ({
+                "--gg-duration": `${timing.duration}ms`,
+              } as React.CSSProperties)
+            : undefined
+        }
+      >
+        {timing && <style>{ANIMATION_CSS}</style>}
         {/* Translate graph left => left-most branch label is not cropped (horizontal) */}
         {/* Translate graph down => top-most commit tooltip is not cropped */}
         <g transform={`translate(${BranchLabel.paddingX}, ${Tooltip.padding})`}>
-          {this.renderBranchesPaths()}
+          {this.renderEdges(timing)}
           <g ref={this.$commits}>
             {this.state.commits.map((commit) => (
               <Commit
                 key={commit.hash}
+                delay={timing ? this.delays.get(commit.hash) : undefined}
                 commits={this.state.commits}
                 commit={commit}
                 setCurrentCommitOver={this.setCurrentCommitOver.bind(this)}
@@ -133,9 +152,16 @@ class Gitgraph extends React.Component<GitgraphProps, GitgraphState> {
   }
 
   public componentDidMount() {
+    this.unsubscribe = this.gitgraph.subscribe((data) =>
+      this.setState(this.fromRenderedData(data)),
+    );
     const props: GitgraphProps = this.props;
     if (isPropsWithGraph(props)) return;
     props.children(this.gitgraph.getUserApi());
+  }
+
+  public componentWillUnmount() {
+    this.unsubscribe();
   }
 
   public componentDidUpdate() {
@@ -165,6 +191,39 @@ class Gitgraph extends React.Component<GitgraphProps, GitgraphState> {
     });
   }
 
+  private get timing(): AnimationOptions | null {
+    const { animation = true } = this.props;
+    if (!animation) return null;
+    return {
+      duration: 300,
+      maxTotal: 1500,
+      ...(animation === true ? {} : animation),
+    };
+  }
+
+  private fromRenderedData({
+    commits,
+    branchesPaths,
+    commitMessagesX,
+  }: {
+    commits: GitgraphState["commits"];
+    branchesPaths: GitgraphState["branchesPaths"];
+    commitMessagesX: number;
+  }) {
+    const timing = this.timing;
+    if (timing) {
+      // Only from/to matter here, not the geometry.
+      const edges = toSvgEdges(branchesPaths, commits, false, false);
+      assignDelays(commits, edges, this.delays, timing);
+    }
+    return {
+      commits,
+      branchesPaths,
+      commitMessagesX,
+      shouldRecomputeOffsets: true,
+    };
+  }
+
   private setCurrentCommitOver(v: CommitCore<ReactSvgElement> | null) {
     this.setState({ currentCommitOver: v });
   }
@@ -188,22 +247,39 @@ class Gitgraph extends React.Component<GitgraphProps, GitgraphState> {
     );
   }
 
-  private renderBranchesPaths() {
+  private renderEdges(timing: AnimationOptions | null) {
     const offset = this.gitgraph.template.commit.dot.size;
     const isBezier =
       this.gitgraph.template.branch.mergeStyle === MergeStyle.Bezier;
+    const render = this.props.renderEdge || defaultEdge;
+    const edges = toSvgEdges(
+      this.state.branchesPaths,
+      this.state.commits,
+      isBezier,
+      this.gitgraph.isVertical,
+      this.getWithCommitOffset.bind(this),
+    );
 
-    return Array.from(this.state.branchesPaths).map(([branch, coordinates]) => (
-      <BranchPath
-        key={branch.name}
-        gitgraph={this.gitgraph}
-        branch={branch}
-        coordinates={coordinates}
-        getWithCommitOffset={this.getWithCommitOffset.bind(this)}
-        isBezier={isBezier}
-        offset={offset}
-      />
-    ));
+    // Flat and keyed by commits: a line never remounts (and replays)
+    // when its branch changes.
+    return (
+      <g transform={`translate(${offset}, ${offset})`}>
+        {edges.map((edge) => (
+          <React.Fragment key={edgeKey(edge)}>
+            {render({
+              d: edge.d,
+              from: edge.from,
+              to: edge.to,
+              stroke: edge.branch.computedColor,
+              strokeWidth: edge.branch.style.lineWidth,
+              delay: this.delays.get(edgeKey(edge)) || 0,
+              duration: timing ? timing.duration : 0,
+              animated: !!timing,
+            })}
+          </React.Fragment>
+        ))}
+      </g>
+    );
   }
 
   private computeOffsets(

@@ -15,6 +15,8 @@ interface CommitsProps {
   getWithCommitOffset: (props: any) => Coordinate;
   setCurrentCommitOver: (val: CommitCore<ReactSvgElement> | null) => void;
   commitMessagesX: number;
+  /** Fade-in delay in ms; `undefined` when not animated. */
+  delay?: number;
 }
 
 export const Commit = (props: CommitsProps) => {
@@ -136,7 +138,16 @@ export const Commit = (props: CommitsProps) => {
   }, [tagRefs, gitgraph, commitMessagesX]);
 
   return (
-    <g transform={`translate(${x}, ${y})`}>
+    <g
+      transform={`translate(${x}, ${y})`}
+      className="gg-commit"
+      data-hash={commit.hash}
+      style={
+        props.delay === undefined
+          ? undefined
+          : ({ "--gg-delay": `${props.delay}ms` } as React.CSSProperties)
+      }
+    >
       <Dot
         commit={commit}
         onMouseOver={() => {

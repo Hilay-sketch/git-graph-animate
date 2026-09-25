@@ -7,7 +7,7 @@ export {
   type BranchesPaths,
   type Coordinate,
   BranchesPathsCalculator,
-  toSvgPath,
+  toSvgEdges,
 };
 
 type BranchesPaths<TNode> = Map<Branch<TNode>, Coordinate[][]>;
@@ -15,6 +15,15 @@ type BranchesPaths<TNode> = Map<Branch<TNode>, Coordinate[][]>;
 interface Coordinate {
   x: number;
   y: number;
+}
+
+interface Edge<TNode> {
+  /** Parent commit hash (or `x,y` if no commit is there) */
+  from: string;
+  /** Child commit hash (or `x,y` if no commit is there) */
+  to: string;
+  branch: Branch<TNode>;
+  d: string;
 }
 
 type InternalBranchesPaths<TNode> = Map<Branch<TNode>, InternalCoordinate[]>;
@@ -266,39 +275,76 @@ class BranchesPathsCalculator<TNode> {
 }
 
 /**
- * Return a string ready to use in `svg.path.d` from coordinates
+ * Split branches paths into one edge per parent → child link, each with its
+ * own `svg.path.d`. Geometry is the same as drawing the whole branch path.
  *
- * @param coordinates Collection of coordinates
+ * @param mapPoint Applied to each point when building `d` (e.g. message offsets)
  */
-function toSvgPath(
-  coordinates: Coordinate[][],
+function toSvgEdges<TNode>(
+  branchesPaths: BranchesPaths<TNode>,
+  commits: Array<Commit<TNode>>,
   isBezier: boolean,
   isVertical: boolean,
-): string {
-  return coordinates
-    .map(
-      (path) =>
-        "M" +
-        path
-          .map(({ x, y }, i, points) => {
-            if (
+  mapPoint: (point: Coordinate) => Coordinate = (point) => point,
+): Array<Edge<TNode>> {
+  const commitAt = new Map(commits.map((c) => [`${c.x},${c.y}`, c]));
+  const idOf = ({ x, y }: Coordinate) => commitAt.get(`${x},${y}`)?.hash;
+  const edges: Array<Edge<TNode>> = [];
+
+  branchesPaths.forEach((paths, branch) => {
+    paths.forEach((path) => {
+      let start = 0;
+      path.forEach((point, i) => {
+        if (i === 0) return;
+        const isLast = i === path.length - 1;
+        // Cut on commits; points in between are rows crossed by the line.
+        if (!idOf(point) && !isLast) return;
+
+        let points = path.slice(start, i + 1);
+        // One flag per segment: curve on the first and last segments of the path.
+        let curves = points
+          .slice(1)
+          .map(
+            (_, j) =>
               isBezier &&
-              points.length > 1 &&
-              (i === 1 || i === points.length - 1)
-            ) {
-              const previous = points[i - 1];
-              if (isVertical) {
-                const middleY = (previous.y + y) / 2;
-                return `C ${previous.x} ${middleY} ${x} ${middleY} ${x} ${y}`;
-              } else {
-                const middleX = (previous.x + x) / 2;
-                return `C ${middleX} ${previous.y} ${middleX} ${y} ${x} ${y}`;
-              }
+              (start + j === 0 || start + j + 1 === path.length - 1),
+          );
+        let from = idOf(points[0]) || `${points[0].x},${points[0].y}`;
+        let to = idOf(point) || `${point.x},${point.y}`;
+
+        // Reverse orientations list points child → parent.
+        const fromCommit = commitAt.get(`${points[0].x},${points[0].y}`);
+        if (fromCommit && fromCommit.parents.includes(to)) {
+          points = points.reverse();
+          curves = curves.reverse();
+          [from, to] = [to, from];
+        }
+
+        const mapped = points.map(mapPoint);
+        const d = mapped
+          .slice(1)
+          .map(({ x, y }, j) => {
+            if (!curves[j]) return `L ${x} ${y}`;
+            const previous = mapped[j];
+            if (isVertical) {
+              const middleY = (previous.y + y) / 2;
+              return `C ${previous.x} ${middleY} ${x} ${middleY} ${x} ${y}`;
             }
-            return `L ${x} ${y}`;
+            const middleX = (previous.x + x) / 2;
+            return `C ${middleX} ${previous.y} ${middleX} ${y} ${x} ${y}`;
           })
-          .join(" ")
-          .slice(1),
-    )
-    .join(" ");
+          .join(" ");
+
+        edges.push({
+          from,
+          to,
+          branch,
+          d: `M ${mapped[0].x} ${mapped[0].y} ${d}`,
+        });
+        start = i;
+      });
+    });
+  });
+
+  return edges;
 }
