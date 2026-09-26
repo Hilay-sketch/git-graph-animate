@@ -42,9 +42,9 @@ function assignDelays(
     delays.set(edgeKey(edge), start === undefined ? -duration : start);
   });
 
+  const hasLine = new Set(edges.map(({ to }) => to));
   fresh.forEach(({ hash }) => {
-    const hasLine = edges.some(({ to }) => to === hash);
-    delays.set(hash, starts.get(hash)! + (hasLine ? duration : 0));
+    delays.set(hash, starts.get(hash)! + (hasLine.has(hash) ? duration : 0));
   });
 
   return isFirstBatch ? [] : fresh.map(({ hash }) => hash);

@@ -1,9 +1,5 @@
 import * as React from "react";
-import {
-  GitgraphCore,
-  Commit as CommitCore,
-  Coordinate,
-} from "../core/index.js";
+import { GitgraphCore, Commit as CommitCore } from "../core/index.js";
 import { Dot } from "./Dot.js";
 import { Arrow } from "./Arrow.js";
 import { Message } from "./Message.js";
@@ -11,10 +7,11 @@ import { Tag, TAG_PADDING_X } from "./Tag.js";
 import { BranchLabel, BRANCH_LABEL_PADDING_X } from "./BranchLabel.js";
 
 interface CommitsProps {
-  commits: Array<CommitCore>;
+  commitsByHash: Map<CommitCore["hash"], CommitCore>;
   commit: CommitCore;
   gitgraph: GitgraphCore;
-  getWithCommitOffset: (point: Coordinate) => Coordinate;
+  /** Commit y, shifted down by custom HTML messages above it. */
+  y: number;
   setCurrentCommitOver: (val: CommitCore | null) => void;
   commitMessagesX: number;
   /** Fade-in delay in ms; `undefined` when not animated. */
@@ -23,8 +20,9 @@ interface CommitsProps {
   added?: boolean;
 }
 
-export const Commit = (props: CommitsProps) => {
-  const { commit, commits, gitgraph, commitMessagesX } = props;
+// Memoized: hovering or measuring re-renders the graph, not every commit.
+export const Commit = React.memo(function Commit(props: CommitsProps) {
+  const { commit, commitsByHash, gitgraph, commitMessagesX } = props;
 
   // One ref is enough: a commit shows at most one branch label.
   const branchLabelRef = React.useRef<SVGGElement>(null);
@@ -43,15 +41,14 @@ export const Commit = (props: CommitsProps) => {
       return (
         <Arrow
           key={parentHash}
-          commits={commits}
+          parent={commitsByHash.get(parentHash)}
           commit={commit}
           gitgraph={gitgraph}
-          parentHash={parentHash}
           commitRadius={commitRadius}
         />
       );
     });
-  }, [commits, commit, gitgraph]);
+  }, [commitsByHash, commit, gitgraph]);
 
   const branchLabels = React.useMemo(() => {
     // Core could compute branch labels into commits directly,
@@ -87,7 +84,8 @@ export const Commit = (props: CommitsProps) => {
     ));
   }, [commit, gitgraph, tagXs]);
 
-  const { x, y } = props.getWithCommitOffset(commit);
+  const { x } = commit;
+  const { y } = props;
 
   // positionCommitsElements
   React.useLayoutEffect(() => {
@@ -177,4 +175,4 @@ export const Commit = (props: CommitsProps) => {
       </g>
     </g>
   );
-};
+});

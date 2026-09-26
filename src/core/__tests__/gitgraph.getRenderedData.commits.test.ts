@@ -68,4 +68,15 @@ describe("Gitgraph.getRenderedData.commits", () => {
       },
     });
   });
+
+  it("should not change the graph's own commits", () => {
+    const core = new GitgraphCore();
+    const master = core.getUserApi().branch("master");
+    master.commit("one").commit("two");
+    const before = JSON.stringify(core.commits);
+
+    core.getRenderedData();
+
+    expect(JSON.stringify(core.commits)).toBe(before);
+  });
 });

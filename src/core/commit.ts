@@ -208,7 +208,7 @@ class Commit {
     if (!newStyle.dot.color) newStyle.dot.color = color;
     if (!newStyle.message.color) newStyle.message.color = color;
 
-    const commit = this.cloneCommit();
+    const commit = this.clone();
     commit.style = newStyle;
 
     return commit;
@@ -219,7 +219,7 @@ class Commit {
    * We started with a mutable class. So we'll refactor that little by little.
    * This private function is a helper to create a new Commit from existing one.
    */
-  private cloneCommit() {
+  public clone(): Commit {
     const commit = new Commit({
       author: `${this.author.name} <${this.author.email}>`,
       subject: this.subject,

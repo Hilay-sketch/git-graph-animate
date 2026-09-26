@@ -42,6 +42,7 @@ function getRenderedData(graph: GitgraphCore): RenderedData {
 
 function computeRenderedCommits(graph: GitgraphCore) {
   const branches = getBranches(graph);
+  const commitsByHash = new Map(graph.commits.map((c) => [c.hash, c]));
 
   // Commits that are not associated to a branch in `branches`
   // were in a deleted branch. If the latter was merged beforehand
@@ -56,9 +57,7 @@ function computeRenderedCommits(graph: GitgraphCore) {
     const tipsOfMergedBranches = graph.commits.flatMap((commit) =>
       commit.parents
         .slice(1)
-        .map((parentHash) =>
-          graph.commits.find(({ hash }) => parentHash === hash)!,
-        ),
+        .map((parentHash) => commitsByHash.get(parentHash)),
     );
 
     const reachableCommits = new Set();
@@ -71,9 +70,7 @@ function computeRenderedCommits(graph: GitgraphCore) {
 
         currentCommit =
           currentCommit.parents.length > 0
-            ? graph.commits.find(
-                ({ hash }) => currentCommit!.parents[0] === hash,
-              )
+            ? commitsByHash.get(currentCommit.parents[0])
             : undefined;
       }
     });
@@ -85,8 +82,9 @@ function computeRenderedCommits(graph: GitgraphCore) {
     ({ hash }) => branches.has(hash) || reachableUnassociatedCommits.has(hash),
   );
 
+  // Work on copies: rendering never changes the graph's own commits.
   const commitsWithBranches = commitsToRender.map((commit) =>
-    withBranches(branches, commit),
+    withBranches(branches, commit.clone()),
   );
 
   const rows = computeRows(graph.mode, commitsToRender);
@@ -145,6 +143,7 @@ function getBranches(
 ): Map<Commit["hash"], Set<Branch["name"]>> {
   const result = new Map<Commit["hash"], Set<Branch["name"]>>();
 
+  const commitsByHash = new Map(graph.commits.map((c) => [c.hash, c]));
   const queue: Array<Commit["hash"]> = [];
   const branches = graph.refs.getAllNames().filter((name) => name !== "HEAD");
   branches.forEach((branch) => {
@@ -155,7 +154,7 @@ function getBranches(
 
     while (queue.length > 0) {
       const currentHash = queue.pop() as Commit["hash"];
-      const current = graph.commits.find(({ hash }) => hash === currentHash);
+      const current = commitsByHash.get(currentHash);
       const prevBranches = result.get(currentHash) || new Set<Branch["name"]>();
       prevBranches.add(branch);
       result.set(currentHash, prevBranches);

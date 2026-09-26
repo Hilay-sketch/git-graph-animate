@@ -2,21 +2,14 @@ import * as React from "react";
 import { GitgraphCore, Commit, arrowSvgPath } from "../core/index.js";
 
 interface ArrowProps {
-  commits: Commit[];
+  /** `undefined` when the parent isn't rendered. */
+  parent: Commit | undefined;
   commit: Commit;
   gitgraph: GitgraphCore;
-  parentHash: string;
   commitRadius: number;
 }
 
-export function Arrow({
-  commits,
-  commit,
-  gitgraph,
-  parentHash,
-  commitRadius,
-}: ArrowProps) {
-  const parent = commits.find(({ hash }) => hash === parentHash);
+export function Arrow({ parent, commit, gitgraph, commitRadius }: ArrowProps) {
   if (!parent) return null;
 
   // Starting point, relative to commit

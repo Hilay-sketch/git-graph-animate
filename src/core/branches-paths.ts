@@ -42,6 +42,7 @@ interface InternalCoordinate extends Coordinate {
  */
 class BranchesPathsCalculator {
   private commits: Array<Commit>;
+  private commitsByHash: Map<Commit["hash"], Commit>;
   private branches: Map<Branch["name"], Branch>;
   private commitSpacing: CommitStyleBase["spacing"];
   private isGraphVertical: boolean;
@@ -61,6 +62,7 @@ class BranchesPathsCalculator {
     createDeletedBranch: () => Branch,
   ) {
     this.commits = commits;
+    this.commitsByHash = new Map(commits.map((c) => [c.hash, c]));
     this.branches = branches;
     this.commitSpacing = commitSpacing;
     this.isGraphVertical = isGraphVertical;
@@ -85,21 +87,19 @@ class BranchesPathsCalculator {
         branch = this.getDeletedBranchInPath() || this.createDeletedBranch();
       }
 
-      const path: Coordinate[] = [];
-      const existingBranchPath = this.branchesPaths.get(branch);
-      const firstParentCommit = this.commits.find(
-        ({ hash }) => hash === commit.parents[0],
-      );
-      if (existingBranchPath) {
-        path.push(...existingBranchPath);
-      } else if (firstParentCommit) {
-        // Make branch path starts from parent branch (parent commit).
-        path.push({ x: firstParentCommit.x, y: firstParentCommit.y });
+      const point = { x: commit.x, y: commit.y };
+      const path = this.branchesPaths.get(branch);
+      if (path) {
+        path.push(point);
+        return;
       }
 
-      path.push({ x: commit.x, y: commit.y });
-
-      this.branchesPaths.set(branch, path);
+      // Make branch path start from parent branch (parent commit).
+      const firstParent = this.commitsByHash.get(commit.parents[0]);
+      this.branchesPaths.set(
+        branch,
+        firstParent ? [{ x: firstParent.x, y: firstParent.y }, point] : [point],
+      );
     });
   }
 
@@ -126,9 +126,9 @@ class BranchesPathsCalculator {
     );
 
     mergeCommits.forEach((mergeCommit) => {
-      const parentOnOriginBranch = this.commits.find(({ hash }) => {
-        return hash === mergeCommit.parents[1];
-      });
+      const parentOnOriginBranch = this.commitsByHash.get(
+        mergeCommit.parents[1],
+      );
       if (!parentOnOriginBranch) return;
 
       const originBranchName = parentOnOriginBranch.branches
@@ -145,11 +145,10 @@ class BranchesPathsCalculator {
         }
       }
 
-      const lastPoints = [...(this.branchesPaths.get(branch) || [])];
-      this.branchesPaths.set(branch, [
-        ...lastPoints,
-        { x: mergeCommit.x, y: mergeCommit.y, mergeCommit: true },
-      ]);
+      const point = { x: mergeCommit.x, y: mergeCommit.y, mergeCommit: true };
+      const path = this.branchesPaths.get(branch);
+      if (path) path.push(point);
+      else this.branchesPaths.set(branch, [point]);
     });
   }
 

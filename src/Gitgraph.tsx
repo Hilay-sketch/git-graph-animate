@@ -48,6 +48,7 @@ function isPropsWithGraph(
 
 interface GitgraphState {
   commits: CommitCore[];
+  commitsByHash: Map<CommitCore["hash"], CommitCore>;
   branchesPaths: BranchesPaths;
   commitMessagesX: number;
   // Computed once the graph is in the DOM (componentDidUpdate).
@@ -109,11 +110,11 @@ class Gitgraph extends React.Component<GitgraphProps, GitgraphState> {
                 key={commit.hash}
                 delay={timing ? this.delays.get(commit.hash) : undefined}
                 added={this.added.has(commit.hash)}
-                commits={this.state.commits}
+                commitsByHash={this.state.commitsByHash}
                 commit={commit}
-                setCurrentCommitOver={this.setCurrentCommitOver.bind(this)}
+                setCurrentCommitOver={this.setCurrentCommitOver}
                 gitgraph={this.gitgraph}
-                getWithCommitOffset={this.getWithCommitOffset.bind(this)}
+                y={this.getWithCommitOffset(commit).y}
                 commitMessagesX={this.state.commitMessagesX}
               />
             ))}
@@ -189,29 +190,33 @@ class Gitgraph extends React.Component<GitgraphProps, GitgraphState> {
     commitMessagesX: number;
   }) {
     const timing = this.timing;
+    const commitsByHash = new Map(commits.map((c) => [c.hash, c]));
     if (timing) {
       // Only from/to matter here, not the geometry.
       const edges = toSvgEdges(branchesPaths, commits, false, false);
       assignDelays(commits, edges, this.delays, timing).forEach((hash) => {
         this.added.add(hash);
-        const commit = commits.find((c) => c.hash === hash)!;
         this.pendingImpacts.push({
           delay: this.delays.get(hash)!,
-          parents: commits.filter((c) => commit.parents.includes(c.hash)),
+          parents: commitsByHash
+            .get(hash)!
+            .parents.flatMap((parent) => commitsByHash.get(parent) || []),
         });
       });
     }
     return {
       commits,
+      commitsByHash,
       branchesPaths,
       commitMessagesX,
       shouldRecomputeOffsets: true,
     };
   }
 
-  private setCurrentCommitOver(v: CommitCore | null) {
+  // Arrow field: a stable callback, so memoized commits don't re-render.
+  private setCurrentCommitOver = (v: CommitCore | null) => {
     this.setState({ currentCommitOver: v });
-  }
+  };
 
   private renderTooltip() {
     const commit = this.state.currentCommitOver;
