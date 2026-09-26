@@ -1,6 +1,6 @@
 import { assignDelays } from "../animation/delays.js";
 
-const timing = { duration: 300, maxTotal: 1500 };
+const timing = { duration: 300, maxTotal: 1500, impact: true };
 const commit = (hash: string) => ({ hash });
 const edge = (from: string, to: string) => ({ from, to });
 
@@ -51,7 +51,7 @@ describe("assignDelays", () => {
     );
 
     expect(delays.get("a->b")).toBe(300);
-    // Lines shoot out once the parent has charged (CHARGE_MS = 450).
+    // Lines shoot out once the parent has charged (1.5 × duration).
     expect(delays.get("b->c")).toBe(450);
     expect(delays.get("c")).toBe(750);
     // Merge: both lines into d draw together.
@@ -89,5 +89,31 @@ describe("assignDelays", () => {
     assignDelays([commit("a"), commit("b")], [edge("a", "b")], delays, timing);
 
     expect(delays.get("a->b")).toBe(-300);
+  });
+
+  it("starts added commits right away without the impact", () => {
+    const delays = new Map<string, number>();
+    const noImpact = { ...timing, impact: false };
+    assignDelays([commit("a")], [], delays, noImpact);
+
+    assignDelays(
+      [commit("a"), commit("b")],
+      [edge("a", "b")],
+      delays,
+      noImpact,
+    );
+
+    expect(delays.get("a->b")).toBe(0);
+    expect(delays.get("b")).toBe(300);
+  });
+
+  it("scales the charge with the duration", () => {
+    const delays = new Map<string, number>();
+    const slow = { ...timing, duration: 600 };
+    assignDelays([commit("a")], [], delays, slow);
+
+    assignDelays([commit("a"), commit("b")], [edge("a", "b")], delays, slow);
+
+    expect(delays.get("a->b")).toBe(900);
   });
 });

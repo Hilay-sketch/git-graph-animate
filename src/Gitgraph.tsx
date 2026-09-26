@@ -25,8 +25,14 @@ export { Gitgraph, type GitgraphProps };
 type GitgraphProps = GitgraphPropsWithChildren | GitgraphPropsWithGraph;
 
 interface GitgraphPropsBase {
-  /** Draw lines in order and fade commits in. `false` disables it. Default: on. */
+  /**
+   * Draw lines in order and fade commits in. `false` disables it.
+   * `{ impact: true }` also makes commits added later land with an impact.
+   * Default: on, without impact.
+   */
   animation?: boolean | Partial<AnimationOptions>;
+  /** Nonce for the injected `<style>`, for a strict Content-Security-Policy. */
+  nonce?: string;
   /** Render each line yourself, e.g. with an animation library. */
   renderEdge?: (edge: EdgeProps) => React.ReactElement;
 }
@@ -97,7 +103,7 @@ class Gitgraph extends React.Component<GitgraphProps, GitgraphState> {
             : undefined
         }
       >
-        {timing && <style>{ANIMATION_CSS}</style>}
+        {timing && <style nonce={this.props.nonce}>{ANIMATION_CSS}</style>}
         {/* Translate graph left => left-most branch label is not cropped (horizontal) */}
         {/* Translate graph down => top-most commit tooltip is not cropped */}
         <g
@@ -176,6 +182,7 @@ class Gitgraph extends React.Component<GitgraphProps, GitgraphState> {
     return {
       duration: 300,
       maxTotal: 1500,
+      impact: false,
       ...(animation === true ? {} : animation),
     };
   }
@@ -194,15 +201,17 @@ class Gitgraph extends React.Component<GitgraphProps, GitgraphState> {
     if (timing) {
       // Only from/to matter here, not the geometry.
       const edges = toSvgEdges(branchesPaths, commits, false, false);
-      assignDelays(commits, edges, this.delays, timing).forEach((hash) => {
-        this.added.add(hash);
-        this.pendingImpacts.push({
-          delay: this.delays.get(hash)!,
-          parents: commitsByHash
-            .get(hash)!
-            .parents.flatMap((parent) => commitsByHash.get(parent) || []),
+      const added = assignDelays(commits, edges, this.delays, timing);
+      if (timing.impact)
+        added.forEach((hash) => {
+          this.added.add(hash);
+          this.pendingImpacts.push({
+            delay: this.delays.get(hash)!,
+            parents: commitsByHash
+              .get(hash)!
+              .parents.flatMap((parent) => commitsByHash.get(parent) || []),
+          });
         });
-      });
     }
     return {
       commits,

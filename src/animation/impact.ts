@@ -1,10 +1,7 @@
 import type { Commit } from "../core/index.js";
-import { CHARGE_MS } from "./delays.js";
+import { chargeTime } from "./delays.js";
 
 export { type Impact, playImpacts };
-
-/** Snap-back of the parent after the charge, in ms. */
-const RELEASE_MS = 250;
 
 interface Impact {
   /** When the commit lands, in ms. */
@@ -31,23 +28,24 @@ function playImpacts(
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
   impacts.forEach(({ delay, parents }) => {
-    const chargeAt = Math.max(0, delay - duration - CHARGE_MS);
+    const chargeAt = Math.max(0, delay - duration - chargeTime(duration));
     parents.forEach((parent) => {
       const color = parent.style.dot.color as string;
-      const dot = svg.querySelector(`[data-hash="${parent.hash}"] .gg-dot`);
+      const hash = CSS.escape(parent.hash);
+      const dot = svg.querySelector(`[data-hash="${hash}"] .gg-dot`);
       if (dot) {
-        const [frames, options] = charge(color);
+        const [frames, options] = charge(color, duration);
         dot.animate(frames, { ...options, delay: chargeAt });
       }
       svg
-        .querySelectorAll<SVGPathElement>(`.gg-edge[data-to="${parent.hash}"]`)
+        .querySelectorAll<SVGPathElement>(`.gg-edge[data-to="${hash}"]`)
         .forEach((line) => {
           const width = Number(line.getAttribute("stroke-width")) || 2;
-          const [frames, options] = chargeLine(color, width);
+          const [frames, options] = chargeLine(color, width, duration);
           line.animate(frames, { ...options, delay: chargeAt });
         });
     });
-    svg.animate(recoil(dx, dy), { delay, duration: 420 });
+    svg.animate(recoil(dx, dy), { delay, duration: duration * 1.4 });
   });
 }
 
@@ -65,10 +63,19 @@ function recoil(dx: number, dy: number): Keyframe[] {
   ];
 }
 
+// Charge, then snap back (release) in 5/6 of a line's duration.
+const chargeTiming = (duration: number) => {
+  const total = chargeTime(duration) + (duration * 5) / 6;
+  return { end: chargeTime(duration) / total, total };
+};
+
 // Parent dot charging: squeezes, trembles and glows, then snaps back past
 // full size as the line is released.
-function charge(color: string): [Keyframe[], KeyframeAnimationOptions] {
-  const end = CHARGE_MS / (CHARGE_MS + RELEASE_MS);
+function charge(
+  color: string,
+  duration: number,
+): [Keyframe[], KeyframeAnimationOptions] {
+  const { end, total } = chargeTiming(duration);
   const glow = (px: number, light: number) =>
     `brightness(${light}) drop-shadow(0 0 ${px}px ${color})`;
   const squeeze = (k: number, jitter: number) =>
@@ -87,7 +94,7 @@ function charge(color: string): [Keyframe[], KeyframeAnimationOptions] {
       },
       { transform: squeeze(1, 0), filter: glow(0, 1) },
     ],
-    { duration: CHARGE_MS + RELEASE_MS, easing: "ease-in" },
+    { duration: total, easing: "ease-in" },
   ];
 }
 
@@ -95,8 +102,9 @@ function charge(color: string): [Keyframe[], KeyframeAnimationOptions] {
 function chargeLine(
   color: string,
   width: number,
+  duration: number,
 ): [Keyframe[], KeyframeAnimationOptions] {
-  const end = CHARGE_MS / (CHARGE_MS + RELEASE_MS);
+  const { end, total } = chargeTiming(duration);
   return [
     [
       { strokeWidth: `${width}px`, filter: `drop-shadow(0 0 0 ${color})` },
@@ -107,6 +115,6 @@ function chargeLine(
       },
       { strokeWidth: `${width}px`, filter: `drop-shadow(0 0 0 ${color})` },
     ],
-    { duration: CHARGE_MS + RELEASE_MS, easing: "ease-in" },
+    { duration: total, easing: "ease-in" },
   ];
 }

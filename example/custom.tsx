@@ -367,7 +367,7 @@ export function MakeItYours() {
             <Gitgraph
               key={JSON.stringify(picks)}
               graph={core}
-              animation={{ duration: 520, maxTotal: 3000 }}
+              animation={{ duration: 520, maxTotal: 3000, impact: true }}
               renderEdge={EDGES[picks.edge].value}
             />
           </div>

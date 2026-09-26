@@ -261,7 +261,7 @@ function App() {
                 </header>
                 <Gitgraph
                   graph={graphs[i].core}
-                  animation={{ duration: 380, maxTotal: 1800 }}
+                  animation={{ duration: 380, maxTotal: 1800, impact: true }}
                   renderEdge={graphs[i].edge}
                 />
               </section>

@@ -26,15 +26,15 @@ const ANIMATION_CSS = `
     transform-origin: center;
   }
   :where(.gg-added .gg-dot) {
-    animation: gg-slam 750ms linear var(--gg-delay) backwards;
+    animation: gg-slam calc(var(--gg-duration) * 2.5) linear var(--gg-delay) backwards;
   }
   :where(.gg-ripple) {
-    animation: gg-ripple 700ms cubic-bezier(0.16, 1, 0.3, 1) var(--gg-delay) backwards;
+    animation: gg-ripple calc(var(--gg-duration) * 7 / 3) cubic-bezier(0.16, 1, 0.3, 1) var(--gg-delay) backwards;
   }
   :where(.gg-ripple + .gg-ripple) {
     --gg-ripple-scale: 12;
-    animation-duration: 1000ms;
-    animation-delay: calc(var(--gg-delay) + 80ms);
+    animation-duration: calc(var(--gg-duration) * 10 / 3);
+    animation-delay: calc(var(--gg-delay) + var(--gg-duration) * 0.27);
   }
 }
 /* Rings only show while animating. */

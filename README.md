@@ -45,16 +45,23 @@ function MyComponent() {
 
 ## Animation
 
-Lines draw one after another, parent to child, and each commit fades in when its line arrives. When a commit is added later, it lands with an impact:
+Lines draw one after another, parent to child, and each commit fades in when its line arrives. The first draw of a long history is capped at `maxTotal`, so it stays short. Users with `prefers-reduced-motion` get a static graph.
+
+With `impact: true`, a commit added later lands with an impact:
 1. The parent commit charges up: it squeezes, trembles and glows, and the line into it swells.
 2. The parent lets go: the new line shoots out, speeding up.
-3. The new commit slams in: shockwave rings burst from it and the graph jolts. The first draw of a long history is capped at `maxTotal`, so it stays short. Users with `prefers-reduced-motion` get a static graph.
+3. The new commit slams in: shockwave rings burst from it and the graph jolts.
+
+Its timings scale with `duration`.
 
 ```jsx
-<Gitgraph>{...}</Gitgraph>                                  // on (default)
+<Gitgraph>{...}</Gitgraph>                                  // draw + fade (default)
 <Gitgraph animation={false}>{...}</Gitgraph>                // off
 <Gitgraph animation={{ duration: 300, maxTotal: 1500 }}>   // ms per line, cap for one batch
+<Gitgraph animation={{ impact: true }}>{...}</Gitgraph>     // added commits land with an impact
 ```
+
+The animation CSS is injected in a `<style>` tag. Under a strict Content-Security-Policy, pass its nonce: `<Gitgraph nonce={nonce}>`.
 
 Every line is a `path.gg-edge` with `data-from` / `data-to` (commit hashes). Every commit is a `g.gg-commit` with `data-hash`. Both carry a `--gg-delay` CSS variable. The built-in CSS has zero specificity, so plain CSS overrides it:
 
@@ -62,7 +69,7 @@ Every line is a `path.gg-edge` with `data-from` / `data-to` (commit hashes). Eve
 .my-graph .gg-edge { animation-timing-function: ease-in-out; }
 ```
 
-Don't animate `transform` on `.gg-commit`: it would override the commit's position. Added commits also carry `gg-added`, and their shockwaves are `circle.gg-ripple`. To tone it down, for example: `.gg-ripple { display: none; }`. The charge and the jolt use the Web Animations API and also respect reduced motion.
+Don't animate `transform` on `.gg-commit`: it would override the commit's position. With `impact`, added commits also carry `gg-added`, and their shockwaves are `circle.gg-ripple`. To tone it down, for example: `.gg-ripple { display: none; }`. The charge and the jolt use the Web Animations API and also respect reduced motion.
 
 To draw lines with a library, use `renderEdge`. It receives `{ d, from, to, stroke, strokeWidth, delay, duration, animated, added }`:
 

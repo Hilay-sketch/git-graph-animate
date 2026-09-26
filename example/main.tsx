@@ -523,7 +523,7 @@ function App() {
       <Gitgraph
         key={`${horizontal}-${compact}-${quest}-${replay}`}
         graph={sky.core}
-        animation={{ duration: 380, maxTotal: 2200 }}
+        animation={{ duration: 380, maxTotal: 2200, impact: true }}
         renderEdge={glowEdge}
       />
     </>
