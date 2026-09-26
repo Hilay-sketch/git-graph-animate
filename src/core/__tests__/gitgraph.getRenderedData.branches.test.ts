@@ -1,4 +1,4 @@
-import { GitgraphCore } from "../gitgraph";
+import { GitgraphCore } from "../gitgraph.js";
 
 describe("Gitgraph.getRenderedData.branches", () => {
   it("should deal with one branch (no merge)", () => {

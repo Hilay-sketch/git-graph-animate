@@ -1,6 +1,6 @@
-import { TagStyle, CommitStyle, DEFAULT_FONT } from "./template";
-import { numberOptionOr } from "./utils";
-import { GitgraphTagOptions } from "./user-api/gitgraph-user-api";
+import { TagStyle, CommitStyle, DEFAULT_FONT } from "./template.js";
+import { numberOptionOr } from "./utils.js";
+import { GitgraphTagOptions } from "./user-api/gitgraph-user-api.js";
 
 export { Tag };
 

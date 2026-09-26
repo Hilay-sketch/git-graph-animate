@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Commit } from "./core";
+import { Commit } from "./core/index.js";
 
 export class Tooltip extends React.Component<
   {

@@ -1,6 +1,6 @@
-import { Commit } from "../commit";
+import { Commit } from "../commit.js";
 
-import { RegularGraphRows } from "./regular";
+import { RegularGraphRows } from "./regular.js";
 
 export class CompactGraphRows<TNode> extends RegularGraphRows<TNode> {
   protected computeRowsFromCommits(commits: Array<Commit<TNode>>): void {

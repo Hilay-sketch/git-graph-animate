@@ -1,4 +1,4 @@
-import { GitgraphCore } from "../gitgraph";
+import { GitgraphCore } from "../gitgraph.js";
 
 describe("Gitgraph.getRenderedData.commits", () => {
   it("should use a default message on merge", () => {

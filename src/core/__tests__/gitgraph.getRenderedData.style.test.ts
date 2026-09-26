@@ -1,13 +1,13 @@
-import { GitgraphCore } from "../gitgraph";
-import { Mode } from "../mode";
-import { BranchOptions } from "../branch";
+import { GitgraphCore } from "../gitgraph.js";
+import { Mode } from "../mode.js";
+import { BranchOptions } from "../branch.js";
 import {
   metroTemplate,
   TemplateName,
   blackArrowTemplate,
   templateExtend,
-} from "../template";
-import { Orientation } from "../orientation";
+} from "../template.js";
+import { Orientation } from "../orientation.js";
 
 describe("Gitgraph.getRenderedData.style", () => {
   it("should have the style of the template by default", () => {

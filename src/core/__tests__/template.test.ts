@@ -1,4 +1,4 @@
-import { templateExtend, TemplateName, metroTemplate } from "../template";
+import { templateExtend, TemplateName, metroTemplate } from "../template.js";
 
 describe("templateExtend", () => {
   it("should return the given template if we pass no new options", () => {

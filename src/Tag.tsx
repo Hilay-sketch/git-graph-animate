@@ -1,6 +1,6 @@
 import * as React from "react";
-import { Tag as CoreTag, Commit } from "./core";
-import { ReactSvgElement } from "./types";
+import { Tag as CoreTag, Commit } from "./core/index.js";
+import { ReactSvgElement } from "./types.js";
 
 interface BaseTagProps {
   tag: CoreTag<React.ReactElement<SVGElement>>;

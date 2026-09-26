@@ -1,5 +1,5 @@
-import { GitgraphCore } from "../gitgraph";
-import { Orientation } from "../orientation";
+import { GitgraphCore } from "../gitgraph.js";
+import { Orientation } from "../orientation.js";
 
 describe("Gitgraph Orientation", () => {
   it("should tell it's vertical by default", () => {

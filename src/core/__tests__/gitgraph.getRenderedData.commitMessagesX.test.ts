@@ -1,5 +1,5 @@
-import { GitgraphCore } from "../gitgraph";
-import { Template } from "../template";
+import { GitgraphCore } from "../gitgraph.js";
+import { Template } from "../template.js";
 
 describe("Gitgraph.getRenderedData.commitMessagesX", () => {
   const template = new Template({

@@ -1,4 +1,4 @@
-import { GitgraphCore } from "../gitgraph";
+import { GitgraphCore } from "../gitgraph.js";
 
 describe("Gitgraph.getRenderedData.tags", () => {
   it("should tag a commit", () => {

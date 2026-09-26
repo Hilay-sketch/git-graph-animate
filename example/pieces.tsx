@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { EdgeProps } from "@gitgraph/react";
+import type { EdgeProps } from "@gamzo/git-graph";
 
 // SVG pieces handed to the library's render props. Shared by the sky and
 // the "Make it yours" section.

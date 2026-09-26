@@ -1,8 +1,8 @@
-import { GitgraphCore } from "../gitgraph";
-import { Orientation } from "../orientation";
-import { Mode } from "../mode";
-import { toSvgEdges } from "../branches-paths";
-import { MergeStyle, TemplateName, templateExtend } from "../template";
+import { GitgraphCore } from "../gitgraph.js";
+import { Orientation } from "../orientation.js";
+import { Mode } from "../mode.js";
+import { toSvgEdges } from "../branches-paths.js";
+import { MergeStyle, TemplateName, templateExtend } from "../template.js";
 
 function simpleGraph(core: GitgraphCore) {
   const gitgraph = core.getUserApi();

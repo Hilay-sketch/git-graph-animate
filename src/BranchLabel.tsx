@@ -1,6 +1,6 @@
 import * as React from "react";
-import { Branch, Commit, GitgraphCore } from "./core";
-import { ReactSvgElement } from "./types";
+import { Branch, Commit, GitgraphCore } from "./core/index.js";
+import { ReactSvgElement } from "./types.js";
 import { MutableRefObject } from "react";
 
 interface BranchLabelBaseProps {

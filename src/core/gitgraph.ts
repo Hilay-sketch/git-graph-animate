@@ -1,23 +1,23 @@
-import { Branch, DELETED_BRANCH_NAME, createDeletedBranch } from "./branch";
-import { Commit } from "./commit";
-import { createGraphRows, GraphRows } from "./graph-rows";
-import { Mode } from "./mode";
-import { BranchesOrder, CompareBranchesOrder } from "./branches-order";
+import { Branch, DELETED_BRANCH_NAME, createDeletedBranch } from "./branch.js";
+import { Commit } from "./commit.js";
+import { createGraphRows, GraphRows } from "./graph-rows/index.js";
+import { Mode } from "./mode.js";
+import { BranchesOrder, CompareBranchesOrder } from "./branches-order.js";
 import {
   Template,
   TemplateOptions,
   TemplateName,
   getTemplate,
-} from "./template";
-import { Refs } from "./refs";
-import { BranchesPathsCalculator, BranchesPaths } from "./branches-paths";
-import { booleanOptionOr, numberOptionOr } from "./utils";
-import { Orientation } from "./orientation";
+} from "./template.js";
+import { Refs } from "./refs.js";
+import { BranchesPathsCalculator, BranchesPaths } from "./branches-paths.js";
+import { booleanOptionOr, numberOptionOr } from "./utils.js";
+import { Orientation } from "./orientation.js";
 import {
   GitgraphUserApi,
   GitgraphBranchOptions,
   GitgraphTagOptions,
-} from "./user-api/gitgraph-user-api";
+} from "./user-api/gitgraph-user-api.js";
 
 export { type GitgraphOptions, GitgraphCore };
 

@@ -1,23 +1,23 @@
-export { GitgraphCore, type GitgraphOptions } from "./gitgraph";
-export { Mode } from "./mode";
+export { GitgraphCore, type GitgraphOptions } from "./gitgraph.js";
+export { Mode } from "./mode.js";
 export {
   GitgraphUserApi,
   type GitgraphCommitOptions,
   type GitgraphBranchOptions,
   type GitgraphTagOptions,
-} from "./user-api/gitgraph-user-api";
+} from "./user-api/gitgraph-user-api.js";
 export {
   BranchUserApi,
   type GitgraphMergeOptions,
-} from "./user-api/branch-user-api";
-export { Branch } from "./branch";
-export { Commit } from "./commit";
-export { Tag } from "./tag";
-export { MergeStyle, TemplateName, templateExtend } from "./template";
-export { Orientation } from "./orientation";
+} from "./user-api/branch-user-api.js";
+export { Branch } from "./branch.js";
+export { Commit } from "./commit.js";
+export { Tag } from "./tag.js";
+export { MergeStyle, TemplateName, templateExtend } from "./template.js";
+export { Orientation } from "./orientation.js";
 export {
   type BranchesPaths,
   type Coordinate,
   toSvgEdges,
-} from "./branches-paths";
-export { arrowSvgPath } from "./utils";
+} from "./branches-paths.js";
+export { arrowSvgPath } from "./utils.js";

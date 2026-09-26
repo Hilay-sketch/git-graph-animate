@@ -1,7 +1,7 @@
-import { Commit } from "./commit";
-import { GitgraphCore } from "./gitgraph";
-import { Orientation } from "./orientation";
-import { Coordinate } from "./branches-paths";
+import { Commit } from "./commit.js";
+import { GitgraphCore } from "./gitgraph.js";
+import { Orientation } from "./orientation.js";
+import { Coordinate } from "./branches-paths.js";
 
 export {
   type Omit,

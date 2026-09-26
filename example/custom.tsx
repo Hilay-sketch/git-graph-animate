@@ -5,7 +5,7 @@ import {
   TemplateName,
   templateExtend,
   type EdgeProps,
-} from "@gitgraph/react";
+} from "@gamzo/git-graph";
 import {
   Badge,
   Card,

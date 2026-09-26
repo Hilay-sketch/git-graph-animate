@@ -1,4 +1,4 @@
-import { GitgraphCore } from "../gitgraph";
+import { GitgraphCore } from "../gitgraph.js";
 
 vi.useFakeTimers();
 

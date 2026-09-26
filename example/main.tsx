@@ -8,7 +8,7 @@ import {
   TemplateName,
   templateExtend,
   type Branch,
-} from "@gitgraph/react";
+} from "@gamzo/git-graph";
 import {
   Card,
   cardWidth,
@@ -814,7 +814,7 @@ function App() {
           <MakeItYours />
 
           <footer className="foot">
-            Drawn with @gitgraph/react. Every star, line, card and label on this
+            Drawn with @gamzo/git-graph. Every star, line, card and label on this
             page comes from a render prop.
           </footer>
         </>

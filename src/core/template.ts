@@ -1,4 +1,4 @@
-import { booleanOptionOr, numberOptionOr } from "./utils";
+import { booleanOptionOr, numberOptionOr } from "./utils.js";
 
 export {
   MergeStyle,

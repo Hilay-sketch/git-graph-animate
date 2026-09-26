@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      "@gitgraph/react": fileURLToPath(
+      "@gamzo/git-graph": fileURLToPath(
         new URL("../src/index.tsx", import.meta.url),
       ),
     },

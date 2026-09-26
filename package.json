@@ -1,6 +1,6 @@
 {
-  "name": "@gitgraph/react",
-  "version": "2.0.0",
+  "name": "@gamzo/git-graph",
+  "version": "0.1.0",
   "description": "Draw pretty git graphs with React",
   "license": "MIT",
   "keywords": [
@@ -22,13 +22,14 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "build": "tsc",
+    "build": "node -e \"require('fs').rmSync('lib',{recursive:true,force:true})\" && tsc",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --globals",
     "format": "prettier --write src",
     "prepare": "npm run build",
     "knip": "knip",
-    "example": "vite example"
+    "example": "vite example",
+    "prepublishOnly": "pnpm test && pnpm build"
   },
   "peerDependencies": {
     "react": ">=16.8.0"

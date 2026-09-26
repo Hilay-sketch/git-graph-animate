@@ -1,5 +1,5 @@
-import { Commit } from "../commit";
-import { blackArrowTemplate } from "../template";
+import { Commit } from "../commit.js";
+import { blackArrowTemplate } from "../template.js";
 
 describe("Commit", () => {
   it("should not mutate given style", () => {

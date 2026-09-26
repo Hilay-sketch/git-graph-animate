@@ -1,4 +1,4 @@
-import { GitgraphCore } from "../gitgraph";
+import { GitgraphCore } from "../gitgraph.js";
 
 describe("Gitgraph.clear", () => {
   it("should clear everything", () => {

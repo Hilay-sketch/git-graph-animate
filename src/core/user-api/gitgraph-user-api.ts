@@ -1,14 +1,14 @@
-import { TagStyle, TemplateOptions } from "../template";
-import { Commit, CommitRenderOptions, CommitOptions } from "../commit";
+import { TagStyle, TemplateOptions } from "../template.js";
+import { Commit, CommitRenderOptions, CommitOptions } from "../commit.js";
 import {
   Branch,
   BranchCommitDefaultOptions,
   BranchRenderOptions,
   DELETED_BRANCH_NAME,
-} from "../branch";
-import { GitgraphCore } from "../gitgraph";
-import { Refs } from "../refs";
-import { BranchUserApi } from "./branch-user-api";
+} from "../branch.js";
+import { GitgraphCore } from "../gitgraph.js";
+import { Refs } from "../refs.js";
+import { BranchUserApi } from "./branch-user-api.js";
 
 export {
   type GitgraphCommitOptions,

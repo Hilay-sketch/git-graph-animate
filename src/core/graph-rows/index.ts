@@ -1,8 +1,8 @@
-import { Mode } from "../mode";
-import { Commit } from "../commit";
+import { Mode } from "../mode.js";
+import { Commit } from "../commit.js";
 
-import { CompactGraphRows } from "./compact";
-import { RegularGraphRows } from "./regular";
+import { CompactGraphRows } from "./compact.js";
+import { RegularGraphRows } from "./regular.js";
 
 export { createGraphRows, RegularGraphRows as GraphRows };
 

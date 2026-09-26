@@ -1,6 +1,6 @@
 import * as React from "react";
-import { ReactSvgElement } from "./types";
-import { GitgraphCore, Commit, arrowSvgPath } from "./core";
+import { ReactSvgElement } from "./types.js";
+import { GitgraphCore, Commit, arrowSvgPath } from "./core/index.js";
 
 interface ArrowProps {
   commits: Array<Commit<ReactSvgElement>>;

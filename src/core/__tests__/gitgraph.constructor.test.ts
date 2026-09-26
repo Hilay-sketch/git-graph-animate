@@ -1,5 +1,5 @@
-import { GitgraphCore } from "../gitgraph";
-import { TemplateName, metroTemplate } from "../template";
+import { GitgraphCore } from "../gitgraph.js";
+import { TemplateName, metroTemplate } from "../template.js";
 
 describe("Gitgraph.constructor", () => {
   it("should have the correct default options", () => {

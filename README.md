@@ -1,11 +1,11 @@
-# @gitgraph/react
+# @gamzo/git-graph
 
 Draw pretty git graphs with React. A React-only fork of the archived [GitGraph.js](https://github.com/nicoespeon/gitgraph.js).
 
 ## Install
 
 ```sh
-pnpm add @gitgraph/react
+pnpm add @gamzo/git-graph
 ```
 
 Requires `react >= 16.8`. Ships ESM + TypeScript types; use it through a bundler (Vite, Next.js, webpack…).
@@ -13,7 +13,7 @@ Requires `react >= 16.8`. Ships ESM + TypeScript types; use it through a bundler
 ## Usage
 
 ```jsx
-import { Gitgraph } from "@gitgraph/react";
+import { Gitgraph } from "@gamzo/git-graph";
 
 function MyComponent() {
   return (

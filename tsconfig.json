@@ -3,19 +3,27 @@
     "rootDir": "src",
     "outDir": "lib",
     "target": "es2019",
-    "module": "esnext",
-    "moduleResolution": "bundler",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "jsx": "react",
-    "lib": ["dom", "es2019"],
-    "types": ["vitest/globals"],
+    "lib": [
+      "dom",
+      "es2019"
+    ],
+    "types": [
+      "vitest/globals"
+    ],
     "declaration": true,
-    "sourceMap": true,
     "strict": true,
     "isolatedModules": true,
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "skipLibCheck": true
   },
-  "include": ["src"],
-  "exclude": ["src/**/__tests__"]
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "src/**/__tests__"
+  ]
 }

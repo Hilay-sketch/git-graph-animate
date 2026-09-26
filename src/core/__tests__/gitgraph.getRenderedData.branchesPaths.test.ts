@@ -1,7 +1,7 @@
-import { GitgraphCore } from "../gitgraph";
-import { Orientation } from "../orientation";
-import { CompareBranchesOrder } from "../branches-order";
-import { metroTemplate, TemplateName } from "../template";
+import { GitgraphCore } from "../gitgraph.js";
+import { Orientation } from "../orientation.js";
+import { CompareBranchesOrder } from "../branches-order.js";
+import { metroTemplate, TemplateName } from "../template.js";
 
 describe("Gitgraph.getRenderedData.branchesPaths", () => {
   it("should generate branches paths for a simple case", () => {

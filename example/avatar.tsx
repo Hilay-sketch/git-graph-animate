@@ -1,6 +1,6 @@
 import * as React from "react";
 import { createRoot } from "react-dom/client";
-import { Gitgraph } from "@gitgraph/react";
+import { Gitgraph } from "@gamzo/git-graph";
 import { Canvas, type CanvasHandle } from "./canvas";
 import {
   AANG,

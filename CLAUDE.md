@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Single-package React library (`@gitgraph/react`), forked from the archived gitgraph.js monorepo and trimmed to the React renderer. pnpm, TypeScript 5, Vitest, knip, Prettier.
+Single-package React library (`@gamzo/git-graph`), forked from the archived gitgraph.js monorepo and trimmed to the React renderer. pnpm, TypeScript 5, Vitest, knip, Prettier.
 
 ## Commands
 
@@ -15,5 +15,6 @@ Single-package React library (`@gitgraph/react`), forked from the archived gitgr
 - `src/core/` — renderer-agnostic graph logic. `GitgraphCore<TNode>` (`gitgraph.ts`) holds commits, branches, refs/tags and template. Users get `GitgraphUserApi` / `BranchUserApi` (`user-api/`) via `getUserApi()`; every mutation schedules a debounced `next()` that notifies `subscribe()` listeners with `getRenderedData()`.
   - `getRenderedData()` computes layout: rows (`graph-rows/`, regular vs compact), branch order/colors (`branches-order.ts`), orientation-aware x/y, branch SVG paths (`branches-paths.ts`). `template.ts` has `metro`/`blackarrow` and `templateExtend`.
 - `src/*.tsx` — the React renderer. `Gitgraph.tsx` is the public component (and re-exports the public core API); it subscribes to core and draws the rendered data as SVG. `index.tsx` is the package entry.
+- `module: nodenext`: relative imports need `.js` extensions (`./core/index.js`), so `lib/` loads in plain Node ESM / SSR. `tsc` enforces it.
 - `isolatedModules` is on: re-export types with `type` (e.g. `export { type Foo }`) or per-file compilers (Vite) break.
 - `jsx: "react"` (classic transform) is deliberate, to keep the `react >= 16.8` peer range.

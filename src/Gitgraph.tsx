@@ -12,10 +12,10 @@ import {
   BranchesPaths,
   Coordinate,
   toSvgEdges,
-} from "./core";
+} from "./core/index.js";
 
-import { BranchLabel } from "./BranchLabel";
-import { Tooltip } from "./Tooltip";
+import { BranchLabel } from "./BranchLabel.js";
+import { Tooltip } from "./Tooltip.js";
 import {
   ReactSvgElement,
   CommitOptions,
@@ -23,9 +23,9 @@ import {
   TagOptions,
   MergeOptions,
   Branch,
-} from "./types";
-import { Commit } from "./Commit";
-import { defaultEdge, EdgeProps } from "./Edge";
+} from "./types.js";
+import { Commit } from "./Commit.js";
+import { defaultEdge, EdgeProps } from "./Edge.js";
 import {
   AnimationOptions,
   ANIMATION_CSS,
@@ -35,7 +35,7 @@ import {
   chargeLine,
   recoil,
   CHARGE_MS,
-} from "./animation";
+} from "./animation.js";
 
 export {
   Gitgraph,
@@ -111,6 +111,7 @@ class Gitgraph extends React.Component<GitgraphProps, GitgraphState> {
     parents: Array<CommitCore<ReactSvgElement>>;
   }> = [];
   private unsubscribe = () => {};
+  private isBuilt = false;
 
   constructor(props: GitgraphProps) {
     super(props);
@@ -177,6 +178,9 @@ class Gitgraph extends React.Component<GitgraphProps, GitgraphState> {
       this.componentDidUpdate();
       return;
     }
+    // StrictMode remounts the same instance: build the graph only once.
+    if (this.isBuilt) return;
+    this.isBuilt = true;
     props.children(this.gitgraph.getUserApi());
   }
 

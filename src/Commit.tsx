@@ -1,11 +1,15 @@
 import * as React from "react";
-import { GitgraphCore, Commit as CommitCore, Coordinate } from "./core";
-import { ReactSvgElement } from "./types";
-import { Dot } from "./Dot";
-import { Arrow } from "./Arrow";
-import { Message } from "./Message";
-import { Tag, TAG_PADDING_X } from "./Tag";
-import { BranchLabel } from "./BranchLabel";
+import {
+  GitgraphCore,
+  Commit as CommitCore,
+  Coordinate,
+} from "./core/index.js";
+import { ReactSvgElement } from "./types.js";
+import { Dot } from "./Dot.js";
+import { Arrow } from "./Arrow.js";
+import { Message } from "./Message.js";
+import { Tag, TAG_PADDING_X } from "./Tag.js";
+import { BranchLabel } from "./BranchLabel.js";
 import { MutableRefObject } from "react";
 
 interface CommitsProps {

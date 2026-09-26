@@ -1,8 +1,8 @@
 import { readFileSync } from "fs";
 import { join } from "path";
 
-import { GitgraphCore } from "../gitgraph";
-import { Template } from "../template";
+import { GitgraphCore } from "../gitgraph.js";
+import { Template } from "../template.js";
 
 describe("Gitgraph.import", () => {
   describe("on invalid input", () => {

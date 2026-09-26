@@ -1,4 +1,4 @@
-import { assignDelays } from "../animation";
+import { assignDelays } from "../animation.js";
 
 const timing = { duration: 300, maxTotal: 1500 };
 const commit = (hash: string) => ({ hash });

@@ -6,7 +6,7 @@ import {
   templateExtend,
   type Branch,
   type EdgeProps,
-} from "@gitgraph/react";
+} from "@gamzo/git-graph";
 import { DOT, edgeHooks, textWidth } from "./pieces";
 
 // Four Nations: the story data, the game rules, and every SVG piece handed

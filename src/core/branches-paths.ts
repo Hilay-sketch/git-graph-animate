@@ -1,7 +1,7 @@
-import { Commit } from "./commit";
-import { Branch } from "./branch";
-import { CommitStyleBase } from "./template";
-import { pick } from "./utils";
+import { Commit } from "./commit.js";
+import { Branch } from "./branch.js";
+import { CommitStyleBase } from "./template.js";
+import { pick } from "./utils.js";
 
 export {
   type BranchesPaths,

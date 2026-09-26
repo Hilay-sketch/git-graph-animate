@@ -1,4 +1,4 @@
-import { Commit } from "../commit";
+import { Commit } from "../commit.js";
 
 export class RegularGraphRows<TNode> {
   protected rows = new Map<Commit["hash"], number>();

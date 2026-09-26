@@ -1,1 +1,3 @@
-export * from "./Gitgraph";
+"use client";
+
+export * from "./Gitgraph.js";

@@ -1,5 +1,5 @@
-import { Branch } from "./branch";
-import { Commit } from "./commit";
+import { Branch } from "./branch.js";
+import { Commit } from "./commit.js";
 
 export { BranchesOrder, type CompareBranchesOrder };
 
