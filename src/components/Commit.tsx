@@ -8,14 +8,13 @@ import { Dot } from "./Dot.js";
 import { Arrow } from "./Arrow.js";
 import { Message } from "./Message.js";
 import { Tag, TAG_PADDING_X } from "./Tag.js";
-import { BranchLabel } from "./BranchLabel.js";
-import { MutableRefObject } from "react";
+import { BranchLabel, BRANCH_LABEL_PADDING_X } from "./BranchLabel.js";
 
 interface CommitsProps {
   commits: Array<CommitCore>;
   commit: CommitCore;
   gitgraph: GitgraphCore;
-  getWithCommitOffset: (props: any) => Coordinate;
+  getWithCommitOffset: (point: Coordinate) => Coordinate;
   setCurrentCommitOver: (val: CommitCore | null) => void;
   commitMessagesX: number;
   /** Fade-in delay in ms; `undefined` when not animated. */
@@ -27,23 +26,10 @@ interface CommitsProps {
 export const Commit = (props: CommitsProps) => {
   const { commit, commits, gitgraph, commitMessagesX } = props;
 
-  /**
-   * This _should_ likely be an array, but is not in order to intentionally keep
-   *  a potential bug in the codebase that existed prior to Hook-ifying this component
-   * @see https://github.com/nicoespeon/gitgraph.js/blob/be9cdf45c7f00970e68e1a4ba579ca7f5c672da4/packages/gitgraph-react/src/Gitgraph.tsx#L197
-   * (notice that it's a single `null` value instead of an array
-   *
-   * The potential bug in question is "what happens when there are more than one
-   * branch label rendered? Do they overlap or cause the message X position to be
-   * in the wrong position?"
-   *
-   * TODO: Investigate potential bug outlined above
-   */
-  const branchLabelRef = React.useRef<SVGGElement>();
-  const tagRefs: MutableRefObject<SVGGElement[]> = React.useRef([]);
-  // "as unknown as any" needed to avoid `ref` mistypings later. :(
-  const messageRef: MutableRefObject<SVGGElement> =
-    React.useRef<SVGGElement>() as unknown as any;
+  // One ref is enough: a commit shows at most one branch label.
+  const branchLabelRef = React.useRef<SVGGElement>(null);
+  const tagRefs = React.useRef<SVGGElement[]>([]);
+  const messageRef = React.useRef<SVGGElement>(null);
 
   const [branchLabelX, setBranchLabelX] = React.useState(0);
   const [tagXs, setTagXs] = React.useState<number[]>([]);
@@ -119,7 +105,7 @@ export const Commit = (props: CommitsProps) => {
 
       // For some reason, one paddingX is missing in BBox width.
       const branchLabelWidth =
-        branchLabelRef.current.getBBox().width + BranchLabel.paddingX;
+        branchLabelRef.current.getBBox().width + BRANCH_LABEL_PADDING_X;
       translateX += branchLabelWidth + padding;
     }
 
@@ -140,7 +126,8 @@ export const Commit = (props: CommitsProps) => {
     if (messageRef.current) {
       setMessageX(translateX);
     }
-  }, [tagRefs, gitgraph, commitMessagesX]);
+    // Re-measure when the commit (its tags, label, message) changes.
+  }, [commit, gitgraph, commitMessagesX]);
 
   return (
     <g

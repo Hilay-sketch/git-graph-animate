@@ -2,35 +2,37 @@ import * as React from "react";
 import { GitgraphCore, Commit, arrowSvgPath } from "../core/index.js";
 
 interface ArrowProps {
-  commits: Array<Commit>;
+  commits: Commit[];
   commit: Commit;
   gitgraph: GitgraphCore;
   parentHash: string;
   commitRadius: number;
 }
 
-export class Arrow extends React.Component<ArrowProps> {
-  public render() {
-    const parent = this.props.commits.find(
-      ({ hash }) => hash === this.props.parentHash,
-    );
-    if (!parent) return null;
+export function Arrow({
+  commits,
+  commit,
+  gitgraph,
+  parentHash,
+  commitRadius,
+}: ArrowProps) {
+  const parent = commits.find(({ hash }) => hash === parentHash);
+  if (!parent) return null;
 
-    // Starting point, relative to commit
-    const origin = this.props.gitgraph.reverseArrow
-      ? {
-          x: this.props.commitRadius + (parent.x - this.props.commit.x),
-          y: this.props.commitRadius + (parent.y - this.props.commit.y),
-        }
-      : { x: this.props.commitRadius, y: this.props.commitRadius };
+  // Starting point, relative to commit
+  const origin = gitgraph.reverseArrow
+    ? {
+        x: commitRadius + (parent.x - commit.x),
+        y: commitRadius + (parent.y - commit.y),
+      }
+    : { x: commitRadius, y: commitRadius };
 
-    return (
-      <g transform={`translate(${origin.x}, ${origin.y})`}>
-        <path
-          d={arrowSvgPath(this.props.gitgraph, parent, this.props.commit)}
-          fill={this.props.gitgraph.template.arrow.color!}
-        />
-      </g>
-    );
-  }
+  return (
+    <g transform={`translate(${origin.x}, ${origin.y})`}>
+      <path
+        d={arrowSvgPath(gitgraph, parent, commit)}
+        fill={gitgraph.template.arrow.color!}
+      />
+    </g>
+  );
 }

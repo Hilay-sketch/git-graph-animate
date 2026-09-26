@@ -11,8 +11,8 @@ import {
   Coordinate,
   toSvgEdges,
 } from "./core/index.js";
-import { BranchLabel } from "./components/BranchLabel.js";
-import { Tooltip } from "./components/Tooltip.js";
+import { BRANCH_LABEL_PADDING_X } from "./components/BranchLabel.js";
+import { Tooltip, TOOLTIP_PADDING } from "./components/Tooltip.js";
 import { Commit } from "./components/Commit.js";
 import { defaultEdge, EdgeProps } from "./components/Edge.js";
 import { AnimationOptions, assignDelays, edgeKey } from "./animation/delays.js";
@@ -99,7 +99,9 @@ class Gitgraph extends React.Component<GitgraphProps, GitgraphState> {
         {timing && <style>{ANIMATION_CSS}</style>}
         {/* Translate graph left => left-most branch label is not cropped (horizontal) */}
         {/* Translate graph down => top-most commit tooltip is not cropped */}
-        <g transform={`translate(${BranchLabel.paddingX}, ${Tooltip.padding})`}>
+        <g
+          transform={`translate(${BRANCH_LABEL_PADDING_X}, ${TOOLTIP_PADDING})`}
+        >
           {this.renderEdges(timing)}
           <g ref={this.$commits}>
             {this.state.commits.map((commit) => (

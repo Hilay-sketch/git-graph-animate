@@ -1,5 +1,8 @@
-import { BranchLabel } from "./components/BranchLabel.js";
-import { Tooltip } from "./components/Tooltip.js";
+import {
+  BRANCH_LABEL_PADDING_X,
+  BRANCH_LABEL_PADDING_Y,
+} from "./components/BranchLabel.js";
+import { TOOLTIP_PADDING } from "./components/Tooltip.js";
 
 export { type CommitYOffsets, computeOffsets, sizeSvg };
 
@@ -14,11 +17,11 @@ function sizeSvg(svg: SVGSVGElement) {
   const { height, width } = svg.getBBox();
   svg.setAttribute(
     "width",
-    (width + Tooltip.padding + BranchLabel.paddingX).toString(),
+    (width + TOOLTIP_PADDING + BRANCH_LABEL_PADDING_X).toString(),
   );
   svg.setAttribute(
     "height",
-    (height + Tooltip.padding + BranchLabel.paddingY).toString(),
+    (height + TOOLTIP_PADDING + BRANCH_LABEL_PADDING_Y).toString(),
   );
 }
 

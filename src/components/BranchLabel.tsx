@@ -1,6 +1,8 @@
 import * as React from "react";
 import { Branch, Commit, GitgraphCore } from "../core/index.js";
-import { MutableRefObject } from "react";
+
+export const BRANCH_LABEL_PADDING_X = 10;
+export const BRANCH_LABEL_PADDING_Y = 5;
 
 interface BranchLabelBaseProps {
   branch: Branch;
@@ -19,8 +21,8 @@ function DefaultBranchLabel({ branch, commit }: BranchLabelBaseProps) {
     setTextSizing({ textWidth: box.width, textHeight: box.height });
   }, []);
 
-  const boxWidth = textSizing.textWidth + 2 * BranchLabel.paddingX;
-  const boxHeight = textSizing.textHeight + 2 * BranchLabel.paddingY;
+  const boxWidth = textSizing.textWidth + 2 * BRANCH_LABEL_PADDING_X;
+  const boxHeight = textSizing.textHeight + 2 * BRANCH_LABEL_PADDING_Y;
 
   return (
     <g>
@@ -37,7 +39,7 @@ function DefaultBranchLabel({ branch, commit }: BranchLabelBaseProps) {
         style={{ font: branch.style.label.font }}
         alignmentBaseline="middle"
         dominantBaseline="middle"
-        x={BranchLabel.paddingX}
+        x={BRANCH_LABEL_PADDING_X}
         y={boxHeight / 2}
       >
         {branch.name}
@@ -48,13 +50,7 @@ function DefaultBranchLabel({ branch, commit }: BranchLabelBaseProps) {
 
 interface BranchLabelProps extends BranchLabelBaseProps {
   gitgraph: GitgraphCore;
-  ref: MutableRefObject<SVGGElement | undefined>;
   branchLabelX: number;
-}
-
-export interface CompoundedComponent extends React.ForwardRefExoticComponent<BranchLabelProps> {
-  paddingX: number;
-  paddingY: number;
 }
 
 export const BranchLabel = React.forwardRef<SVGGElement, BranchLabelProps>(
@@ -95,7 +91,4 @@ export const BranchLabel = React.forwardRef<SVGGElement, BranchLabelProps>(
       );
     }
   },
-) as CompoundedComponent;
-
-BranchLabel.paddingX = 10;
-BranchLabel.paddingY = 5;
+);
