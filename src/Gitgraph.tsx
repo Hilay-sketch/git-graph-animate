@@ -171,7 +171,12 @@ class Gitgraph extends React.Component<GitgraphProps, GitgraphState> {
       this.setState(this.fromRenderedData(data)),
     );
     const props: GitgraphProps = this.props;
-    if (isPropsWithGraph(props)) return;
+    if (isPropsWithGraph(props)) {
+      // A `graph` may already hold commits and never change again:
+      // size the SVG now instead of waiting for an update.
+      this.componentDidUpdate();
+      return;
+    }
     props.children(this.gitgraph.getUserApi());
   }
 

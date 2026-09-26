@@ -13,7 +13,11 @@ export const Message = React.forwardRef<SVGGElement, MessageProps>(
 
     if (commit.renderMessage) {
       return (
-        <g ref={ref} transform={`translate(${messageX}, 0)`}>
+        <g
+          ref={ref}
+          transform={`translate(${messageX}, 0)`}
+          onClick={commit.onMessageClick}
+        >
           {commit.renderMessage(commit)}
         </g>
       );

@@ -13,7 +13,9 @@ export class Tooltip extends React.Component<
   private $text = React.createRef<SVGTextElement>();
 
   public componentDidMount() {
-    this.setState({ textWidth: this.$text.current!.getBBox().width });
+    // A custom `renderTooltip` has no default text to measure.
+    if (!this.$text.current) return;
+    this.setState({ textWidth: this.$text.current.getBBox().width });
   }
 
   public render() {
