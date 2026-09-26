@@ -238,6 +238,14 @@ describe("Branch", () => {
       );
     });
 
+    it("should delete a merged branch when another branch on the same commit is checked out", () => {
+      develop.merge({ branch: feature, fastForward: true });
+      develop.checkout();
+
+      expect(() => feature.delete()).not.toThrow();
+      expect(gitgraph._graph.refs.hasName("feature")).toBe(false);
+    });
+
     it("should throw when branching from a deleted branch", () => {
       develop.checkout();
 

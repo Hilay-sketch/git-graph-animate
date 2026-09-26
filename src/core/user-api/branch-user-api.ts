@@ -97,10 +97,8 @@ class BranchUserApi {
     // Delete all references to the branch from the graph (graph.branches and graph.refs)
     // and from the commits (commit.refs). Then, make the branch instance a deleted branch.
     // Like in git, the commits and tags in the deleted branch remain in the graph
-    if (
-      this._graph.refs.getCommit("HEAD") ===
-      this._graph.refs.getCommit(this.name)
-    ) {
+    // Compare branches, not commits: another branch may sit on the same commit.
+    if (this._graph.currentBranch.name === this.name) {
       throw new Error(`Cannot delete the checked out branch "${this.name}"`);
     }
 
