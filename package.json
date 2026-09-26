@@ -1,6 +1,6 @@
 {
   "name": "@gamzo/git-graph",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Draw pretty git graphs with React",
   "license": "MIT",
   "keywords": [
