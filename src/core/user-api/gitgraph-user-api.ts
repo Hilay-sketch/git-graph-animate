@@ -40,21 +40,13 @@ interface GitgraphTagOptions {
 }
 
 interface GitgraphBranchOptions extends BranchRenderOptions {
-  /**
-   * Branch name
-   */
+  /** Branch name */
   name: string;
-  /**
-   * Origin branch or commit hash
-   */
+  /** Origin branch or commit hash */
   from?: BranchUserApi | Commit["hash"];
-  /**
-   * Default options for commits
-   */
+  /** Default options for commits */
   commitDefaultOptions?: BranchCommitDefaultOptions;
-  /**
-   * Branch style
-   */
+  /** Branch style */
   style?: TemplateOptions["branch"];
 }
 
@@ -67,9 +59,7 @@ class GitgraphUserApi {
     this._onGraphUpdate = onGraphUpdate;
   }
 
-  /**
-   * Clear everything (as `rm -rf .git && git init`).
-   */
+  /** Clear everything (as `rm -rf .git && git init`). */
   public clear(): this {
     this._graph.refs = new Refs();
     this._graph.tags = new Refs();

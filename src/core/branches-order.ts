@@ -3,8 +3,6 @@ import { Commit } from "./commit.js";
 
 export { BranchesOrder, type CompareBranchesOrder };
 
-type Color = string;
-
 /**
  * Function used to determine the order of the branches in the rendered graph.
  *
@@ -18,40 +16,26 @@ type CompareBranchesOrder = (
   branchNameB: Branch["name"],
 ) => number;
 
+/** Column and default color of each displayed branch. */
 class BranchesOrder {
-  private branches: Set<Branch["name"]> = new Set();
-  private colors: Color[];
+  private order: Map<Branch["name"], number>;
 
   public constructor(
-    commits: Array<Commit>,
-    colors: Color[],
+    commits: Commit[],
+    private colors: string[],
     compareFunction: CompareBranchesOrder | undefined,
   ) {
-    this.colors = colors;
-    commits.forEach((commit) => this.branches.add(commit.branchToDisplay));
-
-    if (compareFunction) {
-      this.branches = new Set(Array.from(this.branches).sort(compareFunction));
-    }
+    const names = Array.from(new Set(commits.map((c) => c.branchToDisplay)));
+    if (compareFunction) names.sort(compareFunction);
+    this.order = new Map(names.map((name, i) => [name, i]));
   }
 
-  /**
-   * Return the order of the given branch name.
-   *
-   * @param branchName Name of the branch
-   */
+  /** Column of the branch, `-1` if no commit displays it. */
   public get(branchName: Branch["name"]): number {
-    return Array.from(this.branches).findIndex(
-      (branch) => branch === branchName,
-    );
+    return this.order.get(branchName) ?? -1;
   }
 
-  /**
-   * Return the color of the given branch.
-   *
-   * @param branchName Name of the branch
-   */
-  public getColorOf(branchName: Branch["name"]): Color {
+  public getColorOf(branchName: Branch["name"]): string {
     return this.colors[this.get(branchName) % this.colors.length];
   }
 }

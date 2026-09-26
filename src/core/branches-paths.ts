@@ -1,7 +1,6 @@
 import { Commit } from "./commit.js";
 import { Branch } from "./branch.js";
 import { CommitStyleBase } from "./template.js";
-import { pick } from "./utils.js";
 
 export {
   type BranchesPaths,
@@ -69,18 +68,14 @@ class BranchesPathsCalculator {
     this.createDeletedBranch = createDeletedBranch;
   }
 
-  /**
-   * Compute branches paths for graph.
-   */
+  /** Compute branches paths for graph. */
   public execute(): BranchesPaths {
     this.fromCommits();
     this.withMergeCommits();
     return this.smoothBranchesPaths();
   }
 
-  /**
-   * Initialize branches paths from calculator's commits.
-   */
+  /** Initialize branches paths from calculator's commits. */
   private fromCommits() {
     this.commits.forEach((commit) => {
       let branch = this.branches.get(commit.branchToDisplay);
@@ -158,18 +153,14 @@ class BranchesPathsCalculator {
     });
   }
 
-  /**
-   * Retrieve deleted branch from calculator's branches paths.
-   */
+  /** Retrieve deleted branch from calculator's branches paths. */
   private getDeletedBranchInPath(): Branch | undefined {
     return Array.from(this.branchesPaths.keys()).find((branch) =>
       branch.isDeleted(),
     );
   }
 
-  /**
-   * Smooth all paths by putting points on each row.
-   */
+  /** Smooth all paths by putting points on each row. */
   private smoothBranchesPaths(): BranchesPaths {
     const branchesPaths = new Map<Branch, Coordinate[][]>();
 
@@ -194,7 +185,7 @@ class BranchesPathsCalculator {
       const paths = points.reduce<Coordinate[][]>(
         (mem, point, i) => {
           if (point.mergeCommit) {
-            mem[mem.length - 1].push(pick(point, ["x", "y"]));
+            mem[mem.length - 1].push({ x: point.x, y: point.y });
             let j = i - 1;
             let previousPoint = points[j];
 
@@ -220,54 +211,34 @@ class BranchesPathsCalculator {
         paths.forEach((path) => path.reverse());
       }
 
-      // Add intermediate points on each sub paths
-      if (this.isGraphVertical) {
-        paths.forEach((subPath) => {
-          if (subPath.length <= 1) return;
-          const firstPoint = subPath[0];
-          const lastPoint = subPath[subPath.length - 1];
-          const column = subPath[1].x;
-          const branchSize =
-            Math.round(
-              Math.abs(firstPoint.y - lastPoint.y) / this.commitSpacing,
-            ) - 1;
-          const branchPoints =
-            branchSize > 0
-              ? new Array(branchSize).fill(0).map((_, i) => ({
-                  x: column,
-                  y: subPath[0].y - this.commitSpacing * (i + 1),
-                }))
-              : [];
-          const lastSubPaths = branchesPaths.get(branch) || [];
-          branchesPaths.set(branch, [
-            ...lastSubPaths,
-            [firstPoint, ...branchPoints, lastPoint],
-          ]);
-        });
-      } else {
-        paths.forEach((subPath) => {
-          if (subPath.length <= 1) return;
-          const firstPoint = subPath[0];
-          const lastPoint = subPath[subPath.length - 1];
-          const column = subPath[1].y;
-          const branchSize =
-            Math.round(
-              Math.abs(firstPoint.x - lastPoint.x) / this.commitSpacing,
-            ) - 1;
-          const branchPoints =
-            branchSize > 0
-              ? new Array(branchSize).fill(0).map((_, i) => ({
-                  y: column,
-                  x: subPath[0].x + this.commitSpacing * (i + 1),
-                }))
-              : [];
-          const lastSubPaths = branchesPaths.get(branch) || [];
-          branchesPaths.set(branch, [
-            ...lastSubPaths,
-            [firstPoint, ...branchPoints, lastPoint],
-          ]);
-        });
-      }
+      // Add a point on each row the sub path crosses, in its column.
+      // Rows run along y (going up) when vertical, along x otherwise.
+      const [along, across, step] = this.isGraphVertical
+        ? (["y", "x", -this.commitSpacing] as const)
+        : (["x", "y", this.commitSpacing] as const);
+      paths.forEach((subPath) => {
+        if (subPath.length <= 1) return;
+        const firstPoint = subPath[0];
+        const lastPoint = subPath[subPath.length - 1];
+        const column = subPath[1][across];
+        const rowsCrossed =
+          Math.round(
+            Math.abs(firstPoint[along] - lastPoint[along]) / this.commitSpacing,
+          ) - 1;
+        const branchPoints = Array.from(
+          { length: Math.max(0, rowsCrossed) },
+          (_, i) => {
+            const point = { x: column, y: column };
+            point[along] = firstPoint[along] + step * (i + 1);
+            return point;
+          },
+        );
+        const lastSubPaths = branchesPaths.get(branch) || [];
+        branchesPaths.set(branch, [
+          ...lastSubPaths,
+          [firstPoint, ...branchPoints, lastPoint],
+        ]);
+      });
     });
 
     return branchesPaths;

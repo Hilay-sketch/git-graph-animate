@@ -41,79 +41,43 @@ const getRandomHash = () =>
   ).substring(0, 40);
 
 class Commit {
-  /**
-   * Ref names
-   */
+  /** Ref names */
   public refs: Array<Branch["name"] | "HEAD"> = [];
-  /**
-   * Commit x position
-   */
+  /** Commit x position */
   public x = 0;
-  /**
-   * Commit y position
-   */
+  /** Commit y position */
   public y = 0;
-  /**
-   * Commit hash
-   */
+  /** Commit hash */
   public hash: string;
-  /**
-   * Abbreviated commit hash
-   */
+  /** Abbreviated commit hash */
   public hashAbbrev: string;
-  /**
-   * Parent hashes
-   */
+  /** Parent hashes */
   public parents: Array<Commit["hash"]>;
-  /**
-   * Abbreviated parent hashed
-   */
+  /** Abbreviated parent hashed */
   public parentsAbbrev: Array<Commit["hashAbbrev"]>;
-  /**
-   * Author
-   */
+  /** Author */
   public author: {
-    /**
-     * Author name
-     */
+    /** Author name */
     name: string;
-    /**
-     * Author email
-     */
+    /** Author email */
     email: string;
-    /**
-     * Author date
-     */
+    /** Author date */
     timestamp: number;
   };
-  /**
-   * Committer
-   */
+  /** Committer */
   public committer: {
-    /**
-     * Commiter name
-     */
+    /** Commiter name */
     name: string;
-    /**
-     * Commiter email
-     */
+    /** Commiter email */
     email: string;
-    /**
-     * Commiter date
-     */
+    /** Commiter date */
     timestamp: number;
   };
-  /**
-   * Subject
-   */
+  /** Subject */
   public subject: string;
-  /**
-   * Body
-   */
+  /** Body */
   public body: string;
-  /**
-   * Message
-   */
+  /** Message */
   public get message() {
     let message = "";
 
@@ -129,55 +93,31 @@ class Commit {
 
     return message;
   }
-  /**
-   * Style
-   */
+  /** Style */
   public style: CommitStyle;
-  /**
-   * Text inside commit dot
-   */
+  /** Text inside commit dot */
   public dotText?: string;
-  /**
-   * List of branches attached
-   */
+  /** List of branches attached */
   public branches?: Array<Branch["name"]>;
-  /**
-   * Branch that should be rendered
-   */
+  /** Branch that should be rendered */
   public get branchToDisplay(): Branch["name"] {
     return this.branches ? this.branches[0] : "";
   }
-  /**
-   * List of tags attached
-   */
+  /** List of tags attached */
   public tags?: Array<Tag>;
-  /**
-   * Callback to execute on click.
-   */
+  /** Callback to execute on click. */
   public onClick: () => void;
-  /**
-   * Callback to execute on click on the commit message.
-   */
+  /** Callback to execute on click on the commit message. */
   public onMessageClick: () => void;
-  /**
-   * Callback to execute on mouse over.
-   */
+  /** Callback to execute on mouse over. */
   public onMouseOver: () => void;
-  /**
-   * Callback to execute on mouse out.
-   */
+  /** Callback to execute on mouse out. */
   public onMouseOut: () => void;
-  /**
-   * Custom dot render
-   */
+  /** Custom dot render */
   public renderDot?: (commit: Commit) => ReactNode;
-  /**
-   * Custom message render
-   */
+  /** Custom message render */
   public renderMessage?: (commit: Commit) => ReactNode;
-  /**
-   * Custom tooltip render
-   */
+  /** Custom tooltip render */
   public renderTooltip?: (commit: Commit) => ReactNode;
 
   constructor(options: CommitOptions) {

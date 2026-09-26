@@ -1,5 +1,3 @@
-import { booleanOptionOr, numberOptionOr } from "./utils.js";
-
 export {
   MergeStyle,
   type BranchStyle,
@@ -14,224 +12,136 @@ export {
   getTemplate,
 };
 
-/**
- * Branch merge style enum
- */
+/** Branch merge style enum */
 enum MergeStyle {
   Bezier = "bezier",
   Straight = "straight",
 }
 
-/**
- * Arrow style
- */
+/** Arrow style */
 interface ArrowStyle {
-  /**
-   * Arrow color
-   */
+  /** Arrow color */
   color: string | null;
-  /**
-   * Arrow size in pixel
-   */
+  /** Arrow size in pixel */
   size: number | null;
-  /**
-   * Arrow offset in pixel
-   */
+  /** Arrow offset in pixel */
   offset: number;
 }
 
 type ArrowStyleOptions = Partial<ArrowStyle>;
 
 interface BranchStyle {
-  /**
-   * Branch color
-   */
+  /** Branch color */
   color?: string;
-  /**
-   * Branch line width in pixel
-   */
+  /** Branch line width in pixel */
   lineWidth: number;
-  /**
-   * Branch merge style
-   */
+  /** Branch merge style */
   mergeStyle: MergeStyle;
-  /**
-   * Space between branches
-   */
+  /** Space between branches */
   spacing: number;
-  /**
-   * Branch label style
-   */
+  /** Branch label style */
   label: BranchLabelStyleOptions;
 }
 
 type BranchStyleOptions = Partial<BranchStyle>;
 
 interface BranchLabelStyle {
-  /**
-   * Branch label visibility
-   */
+  /** Branch label visibility */
   display: boolean;
-  /**
-   * Branch label text color
-   */
+  /** Branch label text color */
   color: string;
-  /**
-   * Branch label stroke color
-   */
+  /** Branch label stroke color */
   strokeColor: string;
-  /**
-   * Branch label background color
-   */
+  /** Branch label background color */
   bgColor: string;
-  /**
-   * Branch label font
-   */
+  /** Branch label font */
   font: string;
-  /**
-   * Branch label border radius
-   */
+  /** Branch label border radius */
   borderRadius: number;
 }
 
 type BranchLabelStyleOptions = Partial<BranchLabelStyle>;
 
 export interface TagStyle {
-  /**
-   * Tag text color
-   */
+  /** Tag text color */
   color: string;
-  /**
-   * Tag stroke color
-   */
+  /** Tag stroke color */
   strokeColor?: string;
-  /**
-   * Tag background color
-   */
+  /** Tag background color */
   bgColor?: string;
-  /**
-   * Tag font
-   */
+  /** Tag font */
   font: string;
-  /**
-   * Tag border radius
-   */
+  /** Tag border radius */
   borderRadius: number;
-  /**
-   * Width of the tag pointer
-   */
+  /** Width of the tag pointer */
   pointerWidth: number;
 }
 
 type TagStyleOptions = Partial<TagStyle>;
 
 interface CommitDotStyle {
-  /**
-   * Commit dot color
-   */
+  /** Commit dot color */
   color?: string;
-  /**
-   * Commit dot size in pixel
-   */
+  /** Commit dot size in pixel */
   size: number;
-  /**
-   * Commit dot stroke width
-   */
+  /** Commit dot stroke width */
   strokeWidth?: number;
-  /**
-   * Commit dot stroke color
-   */
+  /** Commit dot stroke color */
   strokeColor?: string;
-  /**
-   * Commit dot font
-   */
+  /** Commit dot font */
   font: string;
 }
 
 type CommitDotStyleOptions = Partial<CommitDotStyle>;
 
 interface CommitMessageStyle {
-  /**
-   * Commit message color
-   */
+  /** Commit message color */
   color?: string;
-  /**
-   * Commit message display policy
-   */
+  /** Commit message display policy */
   display: boolean;
-  /**
-   * Commit message author display policy
-   */
+  /** Commit message author display policy */
   displayAuthor: boolean;
-  /**
-   * Commit message hash display policy
-   */
+  /** Commit message hash display policy */
   displayHash: boolean;
-  /**
-   * Commit message font
-   */
+  /** Commit message font */
   font: string;
 }
 
 type CommitMessageStyleOptions = Partial<CommitMessageStyle>;
 
 interface CommitStyleBase {
-  /**
-   * Spacing between commits
-   */
+  /** Spacing between commits */
   spacing: number;
-  /**
-   * Commit color (dot & message)
-   */
+  /** Commit color (dot & message) */
   color?: string;
-  /**
-   * Tooltips policy
-   */
+  /** Tooltips policy */
   hasTooltipInCompactMode: boolean;
 }
 
 interface CommitStyle extends CommitStyleBase {
-  /**
-   * Commit message style
-   */
+  /** Commit message style */
   message: CommitMessageStyle;
-  /**
-   * Commit dot style
-   */
+  /** Commit dot style */
   dot: CommitDotStyle;
 }
 
 interface CommitStyleOptions extends Partial<CommitStyleBase> {
-  /**
-   * Commit message style
-   */
+  /** Commit message style */
   message?: CommitMessageStyleOptions;
-  /**
-   * Commit dot style
-   */
+  /** Commit dot style */
   dot?: CommitDotStyleOptions;
 }
 
 interface TemplateOptions {
-  /**
-   * Colors scheme: One color for each column
-   */
+  /** Colors scheme: One color for each column */
   colors?: string[];
-  /**
-   * Arrow style
-   */
+  /** Arrow style */
   arrow?: ArrowStyleOptions;
-  /**
-   * Branch style
-   */
+  /** Branch style */
   branch?: BranchStyleOptions;
-  /**
-   * Commit style
-   */
+  /** Commit style */
   commit?: CommitStyleOptions;
-  /**
-   * Tag style
-   */
+  /** Tag style */
   tag?: TagStyleOptions;
 }
 
@@ -243,35 +153,29 @@ export const DEFAULT_FONT = "normal 12pt Calibri";
  * Set of design rules for the rendering.
  */
 class Template {
-  /**
-   * Colors scheme: One color for each column
-   */
+  /** Colors scheme: One color for each column */
   public colors: string[];
-  /**
-   * Arrow style
-   */
+  /** Arrow style */
   public arrow: ArrowStyle;
-  /**
-   * Branch style
-   */
+  /** Branch style */
   public branch: BranchStyle;
-  /**
-   * Commit style
-   */
+  /** Commit style */
   public commit: CommitStyle;
-  /**
-   * Tag style
-   */
+  /** Tag style */
   public tag: TagStyleOptions;
 
-  constructor(options: TemplateOptions) {
-    // Options
-    options.branch = options.branch || {};
-    options.branch.label = options.branch.label || {};
-    options.arrow = options.arrow || {};
-    options.commit = options.commit || {};
-    options.commit.dot = options.commit.dot || {};
-    options.commit.message = options.commit.message || {};
+  constructor(userOptions: TemplateOptions) {
+    // Fill missing groups on a copy: the caller's options stay untouched.
+    const options = {
+      ...userOptions,
+      arrow: userOptions.arrow || {},
+      branch: { ...userOptions.branch, label: userOptions.branch?.label || {} },
+      commit: {
+        ...userOptions.commit,
+        dot: userOptions.commit?.dot || {},
+        message: userOptions.commit?.message || {},
+      },
+    };
 
     // One color per column
     this.colors = options.colors || ["#000000"];
@@ -281,9 +185,9 @@ class Template {
       color: options.branch.color,
       lineWidth: options.branch.lineWidth || 2,
       mergeStyle: options.branch.mergeStyle || MergeStyle.Bezier,
-      spacing: numberOptionOr(options.branch.spacing, 20),
+      spacing: options.branch.spacing ?? 20,
       label: {
-        display: booleanOptionOr(options.branch.label.display, true),
+        display: options.branch.label.display ?? true,
         color: options.branch.label.color || options.commit.color,
         strokeColor: options.branch.label.strokeColor || options.commit.color,
         bgColor: options.branch.label.bgColor || "white",
@@ -291,7 +195,7 @@ class Template {
           options.branch.label.font ||
           options.commit.message.font ||
           DEFAULT_FONT,
-        borderRadius: numberOptionOr(options.branch.label.borderRadius, 10),
+        borderRadius: options.branch.label.borderRadius ?? 10,
       },
     };
 
@@ -305,15 +209,12 @@ class Template {
     // Commit style
     this.commit = {
       color: options.commit.color,
-      spacing: numberOptionOr(options.commit.spacing, 25),
-      hasTooltipInCompactMode: booleanOptionOr(
-        options.commit.hasTooltipInCompactMode,
-        true,
-      ),
+      spacing: options.commit.spacing ?? 25,
+      hasTooltipInCompactMode: options.commit.hasTooltipInCompactMode ?? true,
       dot: {
         color: options.commit.dot.color || options.commit.color,
         size: options.commit.dot.size || 3,
-        strokeWidth: numberOptionOr(options.commit.dot.strokeWidth, 0),
+        strokeWidth: options.commit.dot.strokeWidth ?? 0,
         strokeColor: options.commit.dot.strokeColor,
         font:
           options.commit.dot.font ||
@@ -321,12 +222,9 @@ class Template {
           "normal 10pt Calibri",
       },
       message: {
-        display: booleanOptionOr(options.commit.message.display, true),
-        displayAuthor: booleanOptionOr(
-          options.commit.message.displayAuthor,
-          true,
-        ),
-        displayHash: booleanOptionOr(options.commit.message.displayHash, true),
+        display: options.commit.message.display ?? true,
+        displayAuthor: options.commit.message.displayAuthor ?? true,
+        displayHash: options.commit.message.displayHash ?? true,
         color: options.commit.message.color || options.commit.color,
         font: options.commit.message.font || DEFAULT_FONT,
       },
@@ -339,9 +237,7 @@ class Template {
   }
 }
 
-/**
- * Black arrow template
- */
+/** Black arrow template */
 const blackArrowTemplate = new Template({
   colors: ["#6963FF", "#47E8D4", "#6BDB52", "#E84BA5", "#FFA657"],
   branch: {
@@ -367,9 +263,7 @@ const blackArrowTemplate = new Template({
   },
 });
 
-/**
- * Metro template
- */
+/** Metro template */
 const metroTemplate = new Template({
   colors: ["#979797", "#008fb5", "#f1c109"],
   branch: {
@@ -404,11 +298,9 @@ function templateExtend(
 ): Template {
   const template = getTemplate(selectedTemplate);
 
-  if (!options.branch) options.branch = {};
-  if (!options.commit) options.commit = {};
+  const branch = options.branch || {};
+  const commit = options.commit || {};
 
-  // This is tedious, but it seems acceptable so we don't need lodash
-  // as we want to keep bundlesize small.
   return {
     colors: options.colors || template.colors,
     arrow: {
@@ -417,22 +309,22 @@ function templateExtend(
     },
     branch: {
       ...template.branch,
-      ...options.branch,
+      ...branch,
       label: {
         ...template.branch.label,
-        ...options.branch.label,
+        ...branch.label,
       },
     },
     commit: {
       ...template.commit,
-      ...options.commit,
+      ...commit,
       dot: {
         ...template.commit.dot,
-        ...options.commit.dot,
+        ...commit.dot,
       },
       message: {
         ...template.commit.message,
-        ...options.commit.message,
+        ...commit.message,
       },
     },
     tag: {

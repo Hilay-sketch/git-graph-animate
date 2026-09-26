@@ -24,29 +24,17 @@ interface BranchRenderOptions {
 }
 
 interface BranchOptions extends BranchRenderOptions {
-  /**
-   * Gitgraph constructor
-   */
+  /** Gitgraph constructor */
   gitgraph: GitgraphCore;
-  /**
-   * Branch name
-   */
+  /** Branch name */
   name: string;
-  /**
-   * Branch style
-   */
+  /** Branch style */
   style: BranchStyle;
-  /**
-   * Parent commit
-   */
+  /** Parent commit */
   parentCommitHash?: Commit["hash"];
-  /**
-   * Default options for commits
-   */
+  /** Default options for commits */
   commitDefaultOptions?: BranchCommitDefaultOptions;
-  /**
-   * On graph update.
-   */
+  /** On graph update. */
   onGraphUpdate: () => void;
 }
 
@@ -73,16 +61,12 @@ class Branch {
     this.renderLabel = options.renderLabel;
   }
 
-  /**
-   * Return the API to manipulate Gitgraph branch as a user.
-   */
+  /** Return the API to manipulate Gitgraph branch as a user. */
   public getUserApi(): BranchUserApi {
     return new BranchUserApi(this, this.gitgraph, this.onGraphUpdate);
   }
 
-  /**
-   * Return true if branch was deleted.
-   */
+  /** Return true if branch was deleted. */
   public isDeleted(): boolean {
     return this.name === DELETED_BRANCH_NAME;
   }

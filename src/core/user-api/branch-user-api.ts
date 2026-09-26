@@ -7,26 +7,20 @@ import {
 import { TemplateOptions, CommitStyle } from "../template.js";
 import { Commit } from "../commit.js";
 import { Branch, createDeletedBranch } from "../branch.js";
-import { withoutUndefinedKeys, Omit } from "../utils.js";
+import { withoutUndefinedKeys } from "../utils.js";
 
 export { BranchUserApi, type GitgraphMergeOptions };
 
 interface GitgraphMergeOptions {
-  /**
-   * Branch or branch name.
-   */
+  /** Branch or branch name. */
   branch: string | BranchUserApi;
-  /**
-   * If `true`, perform a fast-forward merge (if possible).
-   */
+  /** If `true`, perform a fast-forward merge (if possible). */
   fastForward?: boolean;
-  /**
-   * Commit options.
-   */
+  /** Commit options. */
   commitOptions?: GitgraphCommitOptions;
 }
 
-type BranchTagOptions = Omit<GitgraphTagOptions, ["ref"]>;
+type BranchTagOptions = Omit<GitgraphTagOptions, "ref">;
 
 class BranchUserApi {
   /**
@@ -98,9 +92,7 @@ class BranchUserApi {
     return this;
   }
 
-  /**
-   * Delete the branch (as `git branch -d`)
-   */
+  /** Delete the branch (as `git branch -d`) */
   public delete(): this {
     // Delete all references to the branch from the graph (graph.branches and graph.refs)
     // and from the commits (commit.refs). Then, make the branch instance a deleted branch.
@@ -250,9 +242,7 @@ class BranchUserApi {
     return this;
   }
 
-  /**
-   * Checkout onto this branch and update "HEAD" in refs
-   */
+  /** Checkout onto this branch and update "HEAD" in refs */
   public checkout(): this {
     if (this._branch.isDeleted() && !this._isReferenced()) {
       throw new Error(`Cannot checkout the deleted branch "${this.name}"`);

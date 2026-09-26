@@ -10,7 +10,6 @@ import {
 } from "./template.js";
 import { Refs } from "./refs.js";
 import { getRenderedData, RenderedData } from "./layout.js";
-import { booleanOptionOr, numberOptionOr } from "./utils.js";
 import { Orientation } from "./orientation.js";
 import {
   GitgraphUserApi,
@@ -87,9 +86,9 @@ class GitgraphCore {
 
     // Set all options with default values
     this.orientation = options.orientation;
-    this.reverseArrow = booleanOptionOr(options.reverseArrow, false);
-    this.initCommitOffsetX = numberOptionOr(options.initCommitOffsetX, 0);
-    this.initCommitOffsetY = numberOptionOr(options.initCommitOffsetY, 0);
+    this.reverseArrow = options.reverseArrow ?? false;
+    this.initCommitOffsetX = options.initCommitOffsetX ?? 0;
+    this.initCommitOffsetY = options.initCommitOffsetY ?? 0;
     this.mode = options.mode;
     this.author = options.author || "Sergio Flores <saxo-guy@epic.com>";
     this.commitMessage =
@@ -102,15 +101,10 @@ class GitgraphCore {
       typeof options.compareBranchesOrder === "function"
         ? options.compareBranchesOrder
         : undefined;
-    this.branchLabelOnEveryCommit = booleanOptionOr(
-      options.branchLabelOnEveryCommit,
-      false,
-    );
+    this.branchLabelOnEveryCommit = options.branchLabelOnEveryCommit ?? false;
   }
 
-  /**
-   * Return the API to manipulate Gitgraph as a user.
-   */
+  /** Return the API to manipulate Gitgraph as a user. */
   public getUserApi(): GitgraphUserApi {
     return new GitgraphUserApi(this, () => this.next());
   }

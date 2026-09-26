@@ -3,87 +3,13 @@ import { GitgraphCore } from "./gitgraph.js";
 import { Orientation } from "./orientation.js";
 import { Coordinate } from "./branches-paths.js";
 
-export {
-  type Omit,
-  booleanOptionOr,
-  numberOptionOr,
-  pick,
-  withoutUndefinedKeys,
-  arrowSvgPath,
-};
+export { withoutUndefinedKeys, arrowSvgPath };
 
-/**
- * Omit some keys from an original type.
- */
-type Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
-
-/**
- * Get all property names not matching a type.
- *
- * @ref http://tycho01.github.io/typical/modules/_object_nonmatchingpropsnames_.html
- */
-type NonMatchingPropNames<T, X> = {
-  [K in keyof T]: T[K] extends X ? never : K;
-}[keyof T];
-
-/**
- * Get all properties with names not matching a type.
- *
- * @ref http://tycho01.github.io/typical/modules/_object_nonmatchingprops_.html
- */
-type NonMatchingProp<T, X> = Pick<T, NonMatchingPropNames<T, X>>;
-
-/**
- * Provide a default value to a boolean.
- * @param value
- * @param defaultValue
- */
-function booleanOptionOr(value: any, defaultValue: boolean): boolean {
-  return typeof value === "boolean" ? value : defaultValue;
-}
-
-/**
- * Provide a default value to a number.
- * @param value
- * @param defaultValue
- */
-function numberOptionOr(value: any, defaultValue: number): number {
-  return typeof value === "number" ? value : defaultValue;
-}
-
-/**
- * Creates an object composed of the picked object properties.
- * @param obj The source object
- * @param paths The property paths to pick
- */
-function pick<T, K extends keyof T>(obj: T, paths: K[]): Pick<T, K> {
-  return {
-    ...paths.reduce((mem, key) => ({ ...mem, [key]: obj[key] }), {}),
-  } as Pick<T, K>;
-}
-
-/**
- * Return true if is undefined.
- *
- * @param obj
- */
-function isUndefined(obj: any): obj is undefined {
-  return obj === undefined;
-}
-
-/**
- * Return a version of the object without any undefined keys.
- *
- * @param obj
- */
-function withoutUndefinedKeys<T>(
-  obj: T = {} as T,
-): NonMatchingProp<T, undefined> {
-  return (Object.keys(obj as object) as [keyof T]).reduce<T>(
-    (mem: any, key) =>
-      isUndefined(obj[key]) ? mem : { ...mem, [key]: obj[key] },
-    {} as T,
-  );
+/** Drop undefined values, so spreading the result never overrides a default. */
+function withoutUndefinedKeys<T extends object>(obj: T = {} as T): Partial<T> {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([, value]) => value !== undefined),
+  ) as Partial<T>;
 }
 
 /**

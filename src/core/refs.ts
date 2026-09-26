@@ -59,9 +59,7 @@ class Refs {
     return this.namesPerCommit.get(commitHash) || [];
   }
 
-  /**
-   * Get all reference names known.
-   */
+  /** Get all reference names known. */
   public getAllNames(): Name[] {
     return Array.from(this.commitPerName.keys());
   }

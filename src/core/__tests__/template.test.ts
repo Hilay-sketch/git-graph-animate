@@ -1,4 +1,9 @@
-import { templateExtend, TemplateName, metroTemplate } from "../template.js";
+import {
+  templateExtend,
+  TemplateName,
+  metroTemplate,
+  Template,
+} from "../template.js";
 
 describe("templateExtend", () => {
   it("should return the given template if we pass no new options", () => {
@@ -36,5 +41,14 @@ describe("templateExtend", () => {
       }),
     });
     expect(extendedTemplate).toEqual(expectedTemplate);
+  });
+
+  it("should not change the given options", () => {
+    const options = { branch: {}, commit: {} };
+
+    new Template(options);
+    templateExtend(TemplateName.Metro, options);
+
+    expect(options).toEqual({ branch: {}, commit: {} });
   });
 });

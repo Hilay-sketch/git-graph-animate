@@ -1,6 +1,6 @@
 import { Branch, DELETED_BRANCH_NAME, createDeletedBranch } from "./branch.js";
 import { Commit } from "./commit.js";
-import { createGraphRows, GraphRows } from "./graph-rows/index.js";
+import { computeRows } from "./rows.js";
 import { BranchesOrder } from "./branches-order.js";
 import { BranchesPathsCalculator, BranchesPaths } from "./branches-paths.js";
 import { Orientation } from "./orientation.js";
@@ -19,7 +19,7 @@ interface RenderedData {
  * branch paths, and where commit messages start.
  */
 function getRenderedData(graph: GitgraphCore): RenderedData {
-  const commits = computeRenderedCommits(graph);
+  const { commits, branchesOrder } = computeRenderedCommits(graph);
   const branchesPaths = new BranchesPathsCalculator(
     commits,
     graph.branches,
@@ -32,11 +32,6 @@ function getRenderedData(graph: GitgraphCore): RenderedData {
     Array.from(branchesPaths).length * graph.template.branch.spacing;
 
   // Branch colors follow branch paths.
-  const branchesOrder = new BranchesOrder(
-    commits,
-    graph.template.colors,
-    graph.branchesOrderFunction,
-  );
   branchesPaths.forEach((_, branch) => {
     branch.computedColor =
       branch.style.color || branchesOrder.getColorOf(branch.name);
@@ -45,7 +40,7 @@ function getRenderedData(graph: GitgraphCore): RenderedData {
   return { commits, branchesPaths, commitMessagesX };
 }
 
-function computeRenderedCommits(graph: GitgraphCore): Commit[] {
+function computeRenderedCommits(graph: GitgraphCore) {
   const branches = getBranches(graph);
 
   // Commits that are not associated to a branch in `branches`
@@ -94,33 +89,38 @@ function computeRenderedCommits(graph: GitgraphCore): Commit[] {
     withBranches(branches, commit),
   );
 
-  const rows = createGraphRows(graph.mode, commitsToRender);
+  const rows = computeRows(graph.mode, commitsToRender);
+  const maxRow = new Set(rows.values()).size - 1;
   const branchesOrder = new BranchesOrder(
     commitsWithBranches,
     graph.template.colors,
     graph.branchesOrderFunction,
   );
 
-  return (
-    commitsWithBranches
-      .map((commit) => commit.setRefs(graph.refs))
-      .map((commit) => withPosition(graph, rows, branchesOrder, commit))
-      // Fallback commit computed color on branch color.
-      .map((commit) =>
-        commit.withDefaultColor(
-          branchesOrder.getColorOf(commit.branchToDisplay),
-        ),
-      )
-      // Tags need commit style to be computed (with default color).
-      .map((commit) =>
-        commit.setTags(
-          graph.tags,
-          (name) =>
-            Object.assign({}, graph.tagStyles[name], graph.template.tag),
-          (name) => graph.tagRenders[name],
-        ),
-      )
-  );
+  const commits = commitsWithBranches
+    .map((commit) => commit.setRefs(graph.refs))
+    .map((commit) =>
+      withPosition(
+        graph,
+        rows.get(commit.hash) || 0,
+        maxRow,
+        branchesOrder,
+        commit,
+      ),
+    )
+    // Fallback commit computed color on branch color.
+    .map((commit) =>
+      commit.withDefaultColor(branchesOrder.getColorOf(commit.branchToDisplay)),
+    )
+    // Tags need commit style to be computed (with default color).
+    .map((commit) =>
+      commit.setTags(
+        graph.tags,
+        (name) => Object.assign({}, graph.tagStyles[name], graph.template.tag),
+        (name) => graph.tagRenders[name],
+      ),
+    );
+  return { commits, branchesOrder };
 }
 
 /**
@@ -170,12 +170,11 @@ function getBranches(
 
 function withPosition(
   graph: GitgraphCore,
-  rows: GraphRows,
+  row: number,
+  maxRow: number,
   branchesOrder: BranchesOrder,
   commit: Commit,
 ): Commit {
-  const row = rows.getRowOf(commit.hash);
-  const maxRow = rows.getMaxRow();
   const order = branchesOrder.get(commit.branchToDisplay);
   const { initCommitOffsetX: x0, initCommitOffsetY: y0 } = graph;
   const commitSpacing = graph.template.commit.spacing;
