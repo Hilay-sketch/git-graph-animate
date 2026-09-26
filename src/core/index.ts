@@ -13,7 +13,14 @@ export {
 export { Branch } from "./branch.js";
 export { Commit } from "./commit.js";
 export { Tag } from "./tag.js";
-export { MergeStyle, TemplateName, templateExtend } from "./template.js";
+export {
+  MergeStyle,
+  TemplateName,
+  templateExtend,
+  type Template,
+  type TemplateOptions,
+  type TagStyle,
+} from "./template.js";
 export { Orientation } from "./orientation.js";
 export {
   type BranchesPaths,

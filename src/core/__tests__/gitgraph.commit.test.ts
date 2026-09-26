@@ -14,14 +14,8 @@ describe("Gitgraph.commit", () => {
       expect(commits.length).toBe(1);
       expect(commit).toMatchObject({
         subject: "Initial commit",
-        author: {
-          name: "Sergio Flores",
-          email: "saxo-guy@epic.com",
-        },
-        committer: {
-          name: "Sergio Flores",
-          email: "saxo-guy@epic.com",
-        },
+        author: { name: "", email: "" },
+        committer: { name: "", email: "" },
         refs: ["master", "HEAD"],
       });
     });
@@ -76,7 +70,25 @@ describe("Gitgraph.commit", () => {
       const [commit] = commits;
 
       expect(commits.length).toBe(1);
-      expect(commit.subject).toBe("He doesn't like George Michael! Boooo!");
+      expect(commit.subject).toBe("");
+    });
+
+    it("should leave an unknown author out of the message", () => {
+      const core = new GitgraphCore();
+      core.getUserApi().commit("Initial commit");
+
+      const [commit] = core.getRenderedData().commits;
+
+      expect(commit.message).toBe(`${commit.hashAbbrev} Initial commit`);
+    });
+
+    it("should leave a missing email out of the message", () => {
+      const core = new GitgraphCore({ author: "Ada" });
+      core.getUserApi().commit("Initial commit");
+
+      const [commit] = core.getRenderedData().commits;
+
+      expect(commit.message).toBe(`${commit.hashAbbrev} Initial commit - Ada`);
     });
   });
 

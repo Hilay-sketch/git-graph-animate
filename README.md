@@ -8,7 +8,7 @@ Draw pretty git graphs with React. A React-only fork of the archived [GitGraph.j
 pnpm add @gamzo/git-graph
 ```
 
-Requires `react >= 16.8`. Ships ESM + TypeScript types; use it through a bundler (Vite, Next.js, webpack…).
+Requires `react >= 18`. Ships ESM + TypeScript types, and works with SSR and Next.js App Router.
 
 ## Usage
 
@@ -41,7 +41,28 @@ function MyComponent() {
 }
 ```
 
-`<Gitgraph>` also accepts `options` (`template`, `orientation`, `mode`, …) and, for imperative control, a `graph` prop created with `new GitgraphCore()`.
+`<Gitgraph>` also accepts `options` (`template`, `orientation`, `mode`, …). `orientation` and friends take plain strings too: `{ orientation: "horizontal" }`.
+
+The `children` function runs once. To change the graph later (new commits from your data, a button, a timer), keep one with `useGitgraph` and pass it as `graph`. Build the first history in its callback, not in an effect: StrictMode runs effects twice.
+
+```jsx
+import { Gitgraph, useGitgraph } from "@gamzo/git-graph";
+
+function Live() {
+  // The second argument builds the initial history, once.
+  const graph = useGitgraph({ orientation: "vertical-reverse" }, (gitgraph) =>
+    gitgraph.branch("master").commit("Initial commit"),
+  );
+  return (
+    <>
+      <button onClick={() => graph.getUserApi().commit("One more")}>Commit</button>
+      <Gitgraph graph={graph} />
+    </>
+  );
+}
+```
+
+Commits with an `onClick` are keyboard buttons: focusable, labelled by their subject, clicked with Enter or Space. Types for custom renders (`Commit`, `TemplateOptions`, `TagStyle`, …) are exported.
 
 ## Animation
 
@@ -60,6 +81,8 @@ Its timings scale with `duration`.
 <Gitgraph animation={{ duration: 300, maxTotal: 1500 }}>   // ms per line, cap for one batch
 <Gitgraph animation={{ impact: true }}>{...}</Gitgraph>     // added commits land with an impact
 ```
+
+The default tooltip follows `--gg-tooltip-bg` and `--gg-tooltip-color`, e.g. `.my-graph { --gg-tooltip-bg: #222; --gg-tooltip-color: #eee; }` for a dark page.
 
 The animation CSS is injected in a `<style>` tag. Under a strict Content-Security-Policy, pass its nonce: `<Gitgraph nonce={nonce}>`.
 

@@ -13,11 +13,23 @@ export const Dot: React.FC<DotProps> = ({
   onMouseOut,
 }) => {
   const { size, color, strokeColor, strokeWidth = 0, font } = commit.style.dot;
+  // Clickable commits are buttons: focusable, and Enter / Space click them.
+  const button = commit.isClickable && {
+    role: "button",
+    tabIndex: 0,
+    "aria-label": commit.subject,
+    onKeyDown: (event: React.KeyboardEvent) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      commit.onClick();
+    },
+  };
   return (
     <g
       onClick={commit.onClick}
       onMouseOver={onMouseOver}
       onMouseOut={onMouseOut}
+      {...button}
     >
       {commit.renderDot ? (
         // Same handlers as the default dot: clicks and tooltips still work.

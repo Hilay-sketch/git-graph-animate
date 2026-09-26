@@ -6,6 +6,11 @@ import { Message } from "./Message.js";
 import { Tag, TAG_PADDING_X } from "./Tag.js";
 import { BranchLabel, BRANCH_LABEL_PADDING_X } from "./BranchLabel.js";
 
+// Measuring needs the DOM: on the server, skip the layout effect (and its
+// React 18 warning). It would not run there anyway.
+const useClientLayoutEffect =
+  typeof window === "undefined" ? React.useEffect : React.useLayoutEffect;
+
 interface CommitsProps {
   commitsByHash: Map<CommitCore["hash"], CommitCore>;
   commit: CommitCore;
@@ -88,7 +93,7 @@ export const Commit = React.memo(function Commit(props: CommitsProps) {
   const { y } = props;
 
   // positionCommitsElements
-  React.useLayoutEffect(() => {
+  useClientLayoutEffect(() => {
     if (gitgraph.isHorizontal) {
       // Elements don't appear on horizontal mode, yet.
       return;

@@ -12,11 +12,9 @@ export {
   getTemplate,
 };
 
-/** Branch merge style enum */
-enum MergeStyle {
-  Bezier = "bezier",
-  Straight = "straight",
-}
+/** How a branch line curves into a merge. */
+const MergeStyle = { Bezier: "bezier", Straight: "straight" } as const;
+type MergeStyle = (typeof MergeStyle)[keyof typeof MergeStyle];
 
 /** Arrow style */
 interface ArrowStyle {
@@ -145,7 +143,7 @@ interface TemplateOptions {
   tag?: TagStyleOptions;
 }
 
-export const DEFAULT_FONT = "normal 12pt Calibri";
+export const DEFAULT_FONT = "normal 12pt system-ui, sans-serif";
 
 /**
  * Gitgraph template
@@ -219,7 +217,7 @@ class Template {
         font:
           options.commit.dot.font ||
           options.commit.message.font ||
-          "normal 10pt Calibri",
+          "normal 10pt system-ui, sans-serif",
       },
       message: {
         display: options.commit.message.display ?? true,
@@ -281,10 +279,8 @@ const metroTemplate = new Template({
   },
 });
 
-enum TemplateName {
-  Metro = "metro",
-  BlackArrow = "blackarrow",
-}
+const TemplateName = { Metro: "metro", BlackArrow: "blackarrow" } as const;
+type TemplateName = (typeof TemplateName)[keyof typeof TemplateName];
 
 /**
  * Extend an existing template with new options.

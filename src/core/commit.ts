@@ -87,8 +87,9 @@ class Commit {
 
     message += this.subject;
 
-    if (this.style.message.displayAuthor) {
-      message += ` - ${this.author.name} <${this.author.email}>`;
+    const { name, email } = this.author;
+    if (this.style.message.displayAuthor && name) {
+      message += ` - ${name}${email ? ` <${email}>` : ""}`;
     }
 
     return message;
@@ -107,6 +108,8 @@ class Commit {
   public tags?: Array<Tag>;
   /** Callback to execute on click. */
   public onClick: () => void;
+  /** An `onClick` was given: the dot is a button. */
+  public isClickable: boolean;
   /** Callback to execute on click on the commit message. */
   public onMessageClick: () => void;
   /** Callback to execute on mouse over. */
@@ -154,6 +157,7 @@ class Commit {
 
     // Set callbacks
     this.onClick = () => (options.onClick ? options.onClick(this) : undefined);
+    this.isClickable = Boolean(options.onClick);
     this.onMessageClick = () =>
       options.onMessageClick ? options.onMessageClick(this) : undefined;
     this.onMouseOver = () =>
@@ -237,6 +241,8 @@ class Commit {
       renderTooltip: this.renderTooltip,
     });
 
+    // `onClick` above is always a wrapper: copy the real flag.
+    commit.isClickable = this.isClickable;
     commit.refs = this.refs;
     commit.branches = this.branches;
     commit.tags = this.tags;

@@ -1,10 +1,8 @@
-// Extracted from `gitgraph.ts` because it caused `utils` tests to fail
-// because of circular dependency between `utils` and `template`.
-// It's not clear why (the circular dependency still exist) but `Orientation`
-// was the only one causing issue. Maybe because it's an enum?
+// Own file, so modules can use it without importing `gitgraph.ts`.
 
-export enum Orientation {
-  VerticalReverse = "vertical-reverse",
-  Horizontal = "horizontal",
-  HorizontalReverse = "horizontal-reverse",
-}
+export const Orientation = {
+  VerticalReverse: "vertical-reverse",
+  Horizontal: "horizontal",
+  HorizontalReverse: "horizontal-reverse",
+} as const;
+export type Orientation = (typeof Orientation)[keyof typeof Orientation];

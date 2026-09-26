@@ -20,7 +20,26 @@ import { ANIMATION_CSS } from "./animation/css.js";
 import { Impact, playImpacts } from "./animation/impact.js";
 import { CommitYOffsets, computeOffsets, sizeSvg } from "./measure.js";
 
-export { Gitgraph, type GitgraphProps };
+export { Gitgraph, type GitgraphProps, useGitgraph };
+
+/**
+ * A graph kept for the component's lifetime, to draw with `<Gitgraph graph>`
+ * and change later from event handlers.
+ *
+ * @param init Builds the initial history, once. Prefer it to an effect:
+ * StrictMode runs effects twice, which would commit everything twice.
+ */
+function useGitgraph(
+  options?: GitgraphOptions,
+  init?: (gitgraph: GitgraphUserApi) => void,
+): GitgraphCore {
+  const [graph] = React.useState(() => {
+    const graph = new GitgraphCore(options);
+    init?.(graph.getUserApi());
+    return graph;
+  });
+  return graph;
+}
 
 type GitgraphProps = GitgraphPropsWithChildren | GitgraphPropsWithGraph;
 

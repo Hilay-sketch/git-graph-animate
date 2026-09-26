@@ -18,4 +18,4 @@ Single-package React library (`@gamzo/git-graph`), forked from the archived gitg
 - `src/Gitgraph.tsx` — the public component: subscribes to core and draws the rendered data as SVG. Pieces live in `components/`, DOM measuring in `measure.ts`, animation in `animation/` (`delays.ts` scheduling, `css.ts` keyframes, `impact.ts` WAAPI for added commits).
 - `module: nodenext`: relative imports need `.js` extensions (`./core/index.js`), so `lib/` loads in plain Node ESM / SSR. `tsc` enforces it.
 - `isolatedModules` is on: re-export types with `type` (e.g. `export { type Foo }`) or per-file compilers (Vite) break.
-- `jsx: "react"` (classic transform) is deliberate, to keep the `react >= 16.8` peer range.
+- `jsx: "react-jsx"` (automatic runtime); peer range is `react >= 18`.

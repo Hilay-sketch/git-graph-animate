@@ -6,7 +6,7 @@ describe("Gitgraph.constructor", () => {
     const gitgraph = new GitgraphCore();
 
     expect(gitgraph).toMatchObject({
-      author: "Sergio Flores <saxo-guy@epic.com>",
+      author: "",
       initCommitOffsetX: 0,
       initCommitOffsetY: 0,
       reverseArrow: false,

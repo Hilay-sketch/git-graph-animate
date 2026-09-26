@@ -90,9 +90,8 @@ class GitgraphCore {
     this.initCommitOffsetX = options.initCommitOffsetX ?? 0;
     this.initCommitOffsetY = options.initCommitOffsetY ?? 0;
     this.mode = options.mode;
-    this.author = options.author || "Sergio Flores <saxo-guy@epic.com>";
-    this.commitMessage =
-      options.commitMessage || "He doesn't like George Michael! Boooo!";
+    this.author = options.author || "";
+    this.commitMessage = options.commitMessage || "";
     this.generateCommitHash =
       typeof options.generateCommitHash === "function"
         ? options.generateCommitHash

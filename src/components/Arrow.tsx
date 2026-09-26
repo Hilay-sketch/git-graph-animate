@@ -1,4 +1,3 @@
-import * as React from "react";
 import { GitgraphCore, Commit, arrowSvgPath } from "../core/index.js";
 
 interface ArrowProps {

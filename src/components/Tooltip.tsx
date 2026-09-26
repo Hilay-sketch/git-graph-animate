@@ -43,13 +43,14 @@ export function Tooltip({ commit, children }: TooltipProps) {
 
   return (
     <g transform={`translate(${commitSize}, ${commitSize / 2})`}>
-      <path d={path} fill="#EEE" />
+      {/* Themable from CSS: --gg-tooltip-bg / --gg-tooltip-color. */}
+      <path d={path} style={{ fill: "var(--gg-tooltip-bg, #eee)" }} />
       <text
         ref={$text}
         x={offset + padding}
         y={0}
         alignmentBaseline="central"
-        fill="#333"
+        style={{ fill: "var(--gg-tooltip-color, #333)" }}
       >
         {children}
       </text>
