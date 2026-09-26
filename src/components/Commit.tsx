@@ -3,8 +3,7 @@ import {
   GitgraphCore,
   Commit as CommitCore,
   Coordinate,
-} from "./core/index.js";
-import { ReactSvgElement } from "./types.js";
+} from "../core/index.js";
 import { Dot } from "./Dot.js";
 import { Arrow } from "./Arrow.js";
 import { Message } from "./Message.js";
@@ -13,11 +12,11 @@ import { BranchLabel } from "./BranchLabel.js";
 import { MutableRefObject } from "react";
 
 interface CommitsProps {
-  commits: Array<CommitCore<ReactSvgElement>>;
-  commit: CommitCore<ReactSvgElement>;
-  gitgraph: GitgraphCore<ReactSvgElement>;
+  commits: Array<CommitCore>;
+  commit: CommitCore;
+  gitgraph: GitgraphCore;
   getWithCommitOffset: (props: any) => Coordinate;
-  setCurrentCommitOver: (val: CommitCore<ReactSvgElement> | null) => void;
+  setCurrentCommitOver: (val: CommitCore | null) => void;
   commitMessagesX: number;
   /** Fade-in delay in ms; `undefined` when not animated. */
   delay?: number;
@@ -69,7 +68,7 @@ export const Commit = (props: CommitsProps) => {
   }, [commits, commit, gitgraph]);
 
   const branchLabels = React.useMemo(() => {
-    // @gitgraph/core could compute branch labels into commits directly.
+    // Core could compute branch labels into commits directly,
     // That will make it easier to retrieve them, just like tags.
     const branches = Array.from(gitgraph.branches.values());
     return branches.map((branch) => {

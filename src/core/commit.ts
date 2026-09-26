@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { CommitStyle, TagStyle } from "./template.js";
 import { Branch } from "./branch.js";
 import { Refs } from "./refs.js";
@@ -6,13 +7,13 @@ import { GitgraphTagOptions } from "./user-api/gitgraph-user-api.js";
 
 export { type CommitRenderOptions, type CommitOptions, Commit };
 
-interface CommitRenderOptions<TNode> {
-  renderDot?: (commit: Commit<TNode>) => TNode;
-  renderMessage?: (commit: Commit<TNode>) => TNode;
-  renderTooltip?: (commit: Commit<TNode>) => TNode;
+interface CommitRenderOptions {
+  renderDot?: (commit: Commit) => ReactNode;
+  renderMessage?: (commit: Commit) => ReactNode;
+  renderTooltip?: (commit: Commit) => ReactNode;
 }
 
-interface CommitOptions<TNode> extends CommitRenderOptions<TNode> {
+interface CommitOptions extends CommitRenderOptions {
   author: string;
   subject: string;
   style: CommitStyle;
@@ -20,10 +21,10 @@ interface CommitOptions<TNode> extends CommitRenderOptions<TNode> {
   hash?: string;
   parents?: string[];
   dotText?: string;
-  onClick?: (commit: Commit<TNode>) => void;
-  onMessageClick?: (commit: Commit<TNode>) => void;
-  onMouseOver?: (commit: Commit<TNode>) => void;
-  onMouseOut?: (commit: Commit<TNode>) => void;
+  onClick?: (commit: Commit) => void;
+  onMessageClick?: (commit: Commit) => void;
+  onMouseOver?: (commit: Commit) => void;
+  onMouseOut?: (commit: Commit) => void;
 }
 
 /**
@@ -39,7 +40,7 @@ const getRandomHash = () =>
     Math.random().toString(16).substring(3)
   ).substring(0, 40);
 
-class Commit<TNode = SVGElement> {
+class Commit {
   /**
    * Ref names
    */
@@ -63,11 +64,11 @@ class Commit<TNode = SVGElement> {
   /**
    * Parent hashes
    */
-  public parents: Array<Commit<TNode>["hash"]>;
+  public parents: Array<Commit["hash"]>;
   /**
    * Abbreviated parent hashed
    */
-  public parentsAbbrev: Array<Commit<TNode>["hashAbbrev"]>;
+  public parentsAbbrev: Array<Commit["hashAbbrev"]>;
   /**
    * Author
    */
@@ -149,7 +150,7 @@ class Commit<TNode = SVGElement> {
   /**
    * List of tags attached
    */
-  public tags?: Array<Tag<TNode>>;
+  public tags?: Array<Tag>;
   /**
    * Callback to execute on click.
    */
@@ -169,17 +170,17 @@ class Commit<TNode = SVGElement> {
   /**
    * Custom dot render
    */
-  public renderDot?: (commit: Commit<TNode>) => TNode;
+  public renderDot?: (commit: Commit) => ReactNode;
   /**
    * Custom message render
    */
-  public renderMessage?: (commit: Commit<TNode>) => TNode;
+  public renderMessage?: (commit: Commit) => ReactNode;
   /**
    * Custom tooltip render
    */
-  public renderTooltip?: (commit: Commit<TNode>) => TNode;
+  public renderTooltip?: (commit: Commit) => ReactNode;
 
-  constructor(options: CommitOptions<TNode>) {
+  constructor(options: CommitOptions) {
     // Set author & committer
     let name, email;
     try {
@@ -233,10 +234,8 @@ class Commit<TNode = SVGElement> {
 
   public setTags(
     tags: Refs,
-    getTagStyle: (name: Tag<TNode>["name"]) => Partial<TagStyle>,
-    getTagRender: (
-      name: Tag<TNode>["name"],
-    ) => GitgraphTagOptions<TNode>["render"],
+    getTagStyle: (name: Tag["name"]) => Partial<TagStyle>,
+    getTagRender: (name: Tag["name"]) => GitgraphTagOptions["render"],
   ): this {
     this.tags = tags
       .getNames(this.hash)
@@ -258,7 +257,7 @@ class Commit<TNode = SVGElement> {
     return this;
   }
 
-  public withDefaultColor(color: string): Commit<TNode> {
+  public withDefaultColor(color: string): Commit {
     const newStyle = {
       ...this.style,
       dot: { ...this.style.dot },

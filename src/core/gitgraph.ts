@@ -1,8 +1,7 @@
-import { Branch, DELETED_BRANCH_NAME, createDeletedBranch } from "./branch.js";
+import { Branch } from "./branch.js";
 import { Commit } from "./commit.js";
-import { createGraphRows, GraphRows } from "./graph-rows/index.js";
 import { Mode } from "./mode.js";
-import { BranchesOrder, CompareBranchesOrder } from "./branches-order.js";
+import { CompareBranchesOrder } from "./branches-order.js";
 import {
   Template,
   TemplateOptions,
@@ -10,7 +9,7 @@ import {
   getTemplate,
 } from "./template.js";
 import { Refs } from "./refs.js";
-import { BranchesPathsCalculator, BranchesPaths } from "./branches-paths.js";
+import { getRenderedData, RenderedData } from "./layout.js";
 import { booleanOptionOr, numberOptionOr } from "./utils.js";
 import { Orientation } from "./orientation.js";
 import {
@@ -35,13 +34,7 @@ interface GitgraphOptions {
   compareBranchesOrder?: CompareBranchesOrder;
 }
 
-interface RenderedData<TNode> {
-  commits: Array<Commit<TNode>>;
-  branchesPaths: BranchesPaths<TNode>;
-  commitMessagesX: number;
-}
-
-class GitgraphCore<TNode = SVGElement> {
+class GitgraphCore {
   public orientation?: Orientation;
   public get isHorizontal(): boolean {
     return (
@@ -77,13 +70,13 @@ class GitgraphCore<TNode = SVGElement> {
   public tags = new Refs();
   public tagStyles: { [name: string]: TemplateOptions["tag"] } = {};
   public tagRenders: {
-    [name: string]: GitgraphTagOptions<TNode>["render"];
+    [name: string]: GitgraphTagOptions["render"];
   } = {};
-  public commits: Array<Commit<TNode>> = [];
-  public branches: Map<Branch["name"], Branch<TNode>> = new Map();
-  public currentBranch: Branch<TNode>;
+  public commits: Array<Commit> = [];
+  public branches: Map<Branch["name"], Branch> = new Map();
+  public currentBranch: Branch;
 
-  private listeners: Array<(data: RenderedData<TNode>) => void> = [];
+  private listeners: Array<(data: RenderedData) => void> = [];
   private nextTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   constructor(options: GitgraphOptions = {}) {
@@ -117,9 +110,8 @@ class GitgraphCore<TNode = SVGElement> {
 
   /**
    * Return the API to manipulate Gitgraph as a user.
-   * Rendering library should give that API to their consumer.
    */
-  public getUserApi(): GitgraphUserApi<TNode> {
+  public getUserApi(): GitgraphUserApi {
     return new GitgraphUserApi(this, () => this.next());
   }
 
@@ -130,7 +122,7 @@ class GitgraphCore<TNode = SVGElement> {
    * @param listener A callback to be invoked on every change.
    * @returns A function to remove this change listener.
    */
-  public subscribe(listener: (data: RenderedData<TNode>) => void): () => void {
+  public subscribe(listener: (data: RenderedData) => void): () => void {
     this.listeners.push(listener);
 
     let isSubscribed = true;
@@ -143,18 +135,9 @@ class GitgraphCore<TNode = SVGElement> {
     };
   }
 
-  /**
-   * Return all data required for rendering.
-   * Rendering libraries will use this to implement their rendering strategy.
-   */
-  public getRenderedData(): RenderedData<TNode> {
-    const commits = this.computeRenderedCommits();
-    const branchesPaths = this.computeRenderedBranchesPaths(commits);
-    const commitMessagesX = this.computeCommitMessagesX(branchesPaths);
-
-    this.computeBranchesColor(commits, branchesPaths);
-
-    return { commits, branchesPaths, commitMessagesX };
+  /** Positioned, styled commits and branch paths, ready to draw. */
+  public getRenderedData(): RenderedData {
+    return getRenderedData(this);
   }
 
   /**
@@ -162,14 +145,14 @@ class GitgraphCore<TNode = SVGElement> {
    *
    * @param options Options of the branch
    */
-  public createBranch(options: GitgraphBranchOptions<TNode>): Branch<TNode>;
+  public createBranch(options: GitgraphBranchOptions): Branch;
   /**
    * Create a new branch. (as `git branch`)
    *
    * @param name Name of the created branch
    */
-  public createBranch(name: string): Branch<TNode>;
-  public createBranch(args: any): Branch<TNode> {
+  public createBranch(name: string): Branch;
+  public createBranch(args: any): Branch {
     const defaultParentBranchName = "HEAD";
 
     let options = {
@@ -206,278 +189,22 @@ class GitgraphCore<TNode = SVGElement> {
       };
     }
 
-    const branch = new Branch<TNode>(options);
+    const branch = new Branch(options);
     this.branches.set(branch.name, branch);
 
     return branch;
   }
 
   /**
-   * Return commits with data for rendering.
+   * Tell each listener something new happened, on the next tick
+   * (several changes in a row notify once).
+   * @internal Called by the user API after each change.
    */
-  private computeRenderedCommits(): Array<Commit<TNode>> {
-    const branches = this.getBranches();
-
-    // Commits that are not associated to a branch in `branches`
-    // were in a deleted branch. If the latter was merged beforehand
-    // they are reachable and are rendered. Others are not
-    const reachableUnassociatedCommits = (() => {
-      const unassociatedCommits = new Set(
-        this.commits.reduce(
-          (commits: Commit["hash"][], { hash }: { hash: Commit["hash"] }) =>
-            !branches.has(hash) ? [...commits, hash] : commits,
-          [],
-        ),
-      );
-
-      const tipsOfMergedBranches = this.commits.reduce(
-        (tipsOfMergedBranches: Commit<TNode>[], commit: Commit<TNode>) =>
-          commit.parents.length > 1
-            ? [
-                ...tipsOfMergedBranches,
-                ...commit.parents
-                  .slice(1)
-                  .map((parentHash) =>
-                    this.commits.find(({ hash }) => parentHash === hash)!,
-                  ),
-              ]
-            : tipsOfMergedBranches,
-        [],
-      );
-
-      const reachableCommits = new Set();
-
-      tipsOfMergedBranches.forEach((tip) => {
-        let currentCommit: Commit<TNode> | undefined = tip;
-
-        while (currentCommit && unassociatedCommits.has(currentCommit.hash)) {
-          reachableCommits.add(currentCommit.hash);
-
-          currentCommit =
-            currentCommit.parents.length > 0
-              ? this.commits.find(
-                  ({ hash }) => currentCommit!.parents[0] === hash,
-                )
-              : undefined;
-        }
-      });
-
-      return reachableCommits;
-    })();
-
-    const commitsToRender = this.commits.filter(
-      ({ hash }) =>
-        branches.has(hash) || reachableUnassociatedCommits.has(hash),
-    );
-
-    const commitsWithBranches = commitsToRender.map((commit) =>
-      this.withBranches(branches, commit),
-    );
-
-    const rows = createGraphRows(this.mode, commitsToRender);
-    const branchesOrder = new BranchesOrder<TNode>(
-      commitsWithBranches,
-      this.template.colors,
-      this.branchesOrderFunction,
-    );
-
-    return (
-      commitsWithBranches
-        .map((commit) => commit.setRefs(this.refs))
-        .map((commit) => this.withPosition(rows, branchesOrder, commit))
-        // Fallback commit computed color on branch color.
-        .map((commit) =>
-          commit.withDefaultColor(
-            this.getBranchDefaultColor(branchesOrder, commit.branchToDisplay),
-          ),
-        )
-        // Tags need commit style to be computed (with default color).
-        .map((commit) =>
-          commit.setTags(
-            this.tags,
-            (name) =>
-              Object.assign({}, this.tagStyles[name], this.template.tag),
-            (name) => this.tagRenders[name],
-          ),
-        )
-    );
-  }
-
-  /**
-   * Return branches paths with all data required for rendering.
-   *
-   * @param commits List of commits with rendering data computed
-   */
-  private computeRenderedBranchesPaths(
-    commits: Array<Commit<TNode>>,
-  ): BranchesPaths<TNode> {
-    return new BranchesPathsCalculator<TNode>(
-      commits,
-      this.branches,
-      this.template.commit.spacing,
-      this.isVertical,
-      this.isReverse,
-      () => createDeletedBranch(this, this.template.branch, () => this.next()),
-    ).execute();
-  }
-
-  /**
-   * Set branches colors based on branches paths.
-   *
-   * @param commits List of graph commits
-   * @param branchesPaths Branches paths to be rendered
-   */
-  private computeBranchesColor(
-    commits: Array<Commit<TNode>>,
-    branchesPaths: BranchesPaths<TNode>,
-  ): void {
-    const branchesOrder = new BranchesOrder<TNode>(
-      commits,
-      this.template.colors,
-      this.branchesOrderFunction,
-    );
-    Array.from(branchesPaths).forEach(([branch]) => {
-      branch.computedColor =
-        branch.style.color ||
-        this.getBranchDefaultColor(branchesOrder, branch.name);
-    });
-  }
-
-  /**
-   * Return commit messages X position for rendering.
-   *
-   * @param branchesPaths Branches paths to be rendered
-   */
-  private computeCommitMessagesX(branchesPaths: BranchesPaths<TNode>): number {
-    const numberOfColumns = Array.from(branchesPaths).length;
-    return numberOfColumns * this.template.branch.spacing;
-  }
-
-  /**
-   * Add `branches` property to commit.
-   *
-   * @param branches All branches mapped by commit hash
-   * @param commit Commit
-   */
-  private withBranches(
-    branches: Map<Commit["hash"], Set<Branch["name"]>>,
-    commit: Commit<TNode>,
-  ): Commit<TNode> {
-    let commitBranches = Array.from(
-      (branches.get(commit.hash) || new Set()).values(),
-    );
-
-    if (commitBranches.length === 0) {
-      // No branch => branch has been deleted.
-      commitBranches = [DELETED_BRANCH_NAME];
-    }
-
-    return commit.setBranches(commitBranches);
-  }
-
-  /**
-   * Get all branches from current commits.
-   */
-  private getBranches(): Map<Commit["hash"], Set<Branch["name"]>> {
-    const result = new Map<Commit["hash"], Set<Branch["name"]>>();
-
-    const queue: Array<Commit["hash"]> = [];
-    const branches = this.refs.getAllNames().filter((name) => name !== "HEAD");
-    branches.forEach((branch) => {
-      const commitHash = this.refs.getCommit(branch);
-      if (commitHash) {
-        queue.push(commitHash);
-      }
-
-      while (queue.length > 0) {
-        const currentHash = queue.pop() as Commit["hash"];
-        const current = this.commits.find(
-          ({ hash }) => hash === currentHash,
-        ) as Commit<TNode> | null;
-        const prevBranches =
-          result.get(currentHash) || new Set<Branch["name"]>();
-        prevBranches.add(branch);
-        result.set(currentHash, prevBranches);
-        if (current && current.parents && current.parents.length > 0) {
-          queue.push(current.parents[0]);
-        }
-      }
-    });
-
-    return result;
-  }
-
-  /**
-   * Add position to given commit.
-   *
-   * @param rows Graph rows
-   * @param branchesOrder Computed order of branches
-   * @param commit Commit to position
-   */
-  private withPosition(
-    rows: GraphRows<TNode>,
-    branchesOrder: BranchesOrder<TNode>,
-    commit: Commit<TNode>,
-  ): Commit<TNode> {
-    const row = rows.getRowOf(commit.hash);
-    const maxRow = rows.getMaxRow();
-
-    const order = branchesOrder.get(commit.branchToDisplay);
-
-    switch (this.orientation) {
-      default:
-        return commit.setPosition({
-          x: this.initCommitOffsetX + this.template.branch.spacing * order,
-          y:
-            this.initCommitOffsetY +
-            this.template.commit.spacing * (maxRow - row),
-        });
-
-      case Orientation.VerticalReverse:
-        return commit.setPosition({
-          x: this.initCommitOffsetX + this.template.branch.spacing * order,
-          y: this.initCommitOffsetY + this.template.commit.spacing * row,
-        });
-
-      case Orientation.Horizontal:
-        return commit.setPosition({
-          x: this.initCommitOffsetX + this.template.commit.spacing * row,
-          y: this.initCommitOffsetY + this.template.branch.spacing * order,
-        });
-
-      case Orientation.HorizontalReverse:
-        return commit.setPosition({
-          x:
-            this.initCommitOffsetX +
-            this.template.commit.spacing * (maxRow - row),
-          y: this.initCommitOffsetY + this.template.branch.spacing * order,
-        });
-    }
-  }
-
-  /**
-   * Return the default color for given branch.
-   *
-   * @param branchesOrder Computed order of branches
-   * @param branchName Name of the branch
-   */
-  private getBranchDefaultColor(
-    branchesOrder: BranchesOrder<TNode>,
-    branchName: Branch["name"],
-  ): string {
-    return branchesOrder.getColorOf(branchName);
-  }
-
-  /**
-   * Tell each listener something new happened.
-   * E.g. a rendering library will know it needs to re-render the graph.
-   */
-  private next() {
+  public next() {
     if (this.nextTimeoutId) {
       clearTimeout(this.nextTimeoutId);
     }
 
-    // Use setTimeout() with `0` to debounce call to next tick.
     this.nextTimeoutId = setTimeout(() => {
       this.listeners.forEach((listener) => listener(this.getRenderedData()));
     }, 0);

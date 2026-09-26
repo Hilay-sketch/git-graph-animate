@@ -7,7 +7,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@gamzo/git-graph": fileURLToPath(
-        new URL("../src/index.tsx", import.meta.url),
+        new URL("../src/index.ts", import.meta.url),
       ),
     },
   },

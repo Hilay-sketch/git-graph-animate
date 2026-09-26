@@ -1,9 +1,8 @@
 import * as React from "react";
-import { Tag as CoreTag, Commit } from "./core/index.js";
-import { ReactSvgElement } from "./types.js";
+import { Tag as CoreTag, Commit } from "../core/index.js";
 
 interface BaseTagProps {
-  tag: CoreTag<React.ReactElement<SVGElement>>;
+  tag: CoreTag;
 }
 
 export const TAG_PADDING_X = 10;
@@ -59,7 +58,7 @@ function DefaultTag(props: BaseTagProps) {
 }
 
 interface TagProps extends BaseTagProps {
-  commit: Commit<ReactSvgElement>;
+  commit: Commit;
   tagX: number;
 }
 

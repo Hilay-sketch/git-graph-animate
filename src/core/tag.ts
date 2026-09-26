@@ -4,7 +4,7 @@ import { GitgraphTagOptions } from "./user-api/gitgraph-user-api.js";
 
 export { Tag };
 
-class Tag<TNode> {
+class Tag {
   /**
    * Name
    */
@@ -12,7 +12,7 @@ class Tag<TNode> {
   /**
    * Custom render function
    */
-  public readonly render?: GitgraphTagOptions<TNode>["render"];
+  public readonly render?: GitgraphTagOptions["render"];
   /**
    * Style
    */
@@ -33,7 +33,7 @@ class Tag<TNode> {
   constructor(
     name: string,
     style: Partial<TagStyle>,
-    render: GitgraphTagOptions<TNode>["render"],
+    render: GitgraphTagOptions["render"],
     commitStyle: CommitStyle,
   ) {
     this.name = name;

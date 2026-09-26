@@ -93,10 +93,10 @@ function withoutUndefinedKeys<T>(
  * @param parent Parent commit of the target commit
  * @param commit Target commit
  */
-function arrowSvgPath<TNode = SVGElement>(
-  graph: GitgraphCore<TNode>,
+function arrowSvgPath(
+  graph: GitgraphCore,
   parent: Coordinate,
-  commit: Commit<TNode>,
+  commit: Commit,
 ): string {
   const commitRadius = commit.style.dot.size;
   const size = graph.template.arrow.size!;
@@ -127,10 +127,10 @@ function arrowSvgPath<TNode = SVGElement>(
   return `M${x1},${y1} L${x2},${y2} Q${x3},${y3} ${x4},${y4} L${x4},${y4}`;
 }
 
-function getAlpha<TNode = SVGElement>(
-  graph: GitgraphCore<TNode>,
+function getAlpha(
+  graph: GitgraphCore,
   parent: Coordinate,
-  commit: Commit<TNode>,
+  commit: Commit,
 ): number {
   const deltaX = parent.x - commit.x;
   const deltaY = parent.y - commit.y;

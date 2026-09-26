@@ -1,11 +1,10 @@
 import * as React from "react";
-import { Branch, Commit, GitgraphCore } from "./core/index.js";
-import { ReactSvgElement } from "./types.js";
+import { Branch, Commit, GitgraphCore } from "../core/index.js";
 import { MutableRefObject } from "react";
 
 interface BranchLabelBaseProps {
-  branch: Branch<React.ReactElement<SVGElement>>;
-  commit: Commit<React.ReactElement<SVGElement>>;
+  branch: Branch;
+  commit: Commit;
 }
 
 function DefaultBranchLabel({ branch, commit }: BranchLabelBaseProps) {
@@ -48,7 +47,7 @@ function DefaultBranchLabel({ branch, commit }: BranchLabelBaseProps) {
 }
 
 interface BranchLabelProps extends BranchLabelBaseProps {
-  gitgraph: GitgraphCore<ReactSvgElement>;
+  gitgraph: GitgraphCore;
   ref: MutableRefObject<SVGGElement | undefined>;
   branchLabelX: number;
 }

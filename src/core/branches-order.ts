@@ -18,12 +18,12 @@ type CompareBranchesOrder = (
   branchNameB: Branch["name"],
 ) => number;
 
-class BranchesOrder<TNode> {
+class BranchesOrder {
   private branches: Set<Branch["name"]> = new Set();
   private colors: Color[];
 
   public constructor(
-    commits: Array<Commit<TNode>>,
+    commits: Array<Commit>,
     colors: Color[],
     compareFunction: CompareBranchesOrder | undefined,
   ) {

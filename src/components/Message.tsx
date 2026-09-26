@@ -1,9 +1,8 @@
 import * as React from "react";
-import { ReactSvgElement } from "./types.js";
-import { Commit } from "./core/index.js";
+import { Commit } from "../core/index.js";
 
 interface MessageProps {
-  commit: Commit<ReactSvgElement>;
+  commit: Commit;
   messageX: number;
 }
 

@@ -7,53 +7,20 @@ import {
   MergeStyle,
   Mode,
   Orientation,
-  TemplateName,
-  templateExtend,
   BranchesPaths,
   Coordinate,
   toSvgEdges,
 } from "./core/index.js";
+import { BranchLabel } from "./components/BranchLabel.js";
+import { Tooltip } from "./components/Tooltip.js";
+import { Commit } from "./components/Commit.js";
+import { defaultEdge, EdgeProps } from "./components/Edge.js";
+import { AnimationOptions, assignDelays, edgeKey } from "./animation/delays.js";
+import { ANIMATION_CSS } from "./animation/css.js";
+import { Impact, playImpacts } from "./animation/impact.js";
+import { CommitYOffsets, computeOffsets, sizeSvg } from "./measure.js";
 
-import { BranchLabel } from "./BranchLabel.js";
-import { Tooltip } from "./Tooltip.js";
-import {
-  ReactSvgElement,
-  CommitOptions,
-  BranchOptions,
-  TagOptions,
-  MergeOptions,
-  Branch,
-} from "./types.js";
-import { Commit } from "./Commit.js";
-import { defaultEdge, EdgeProps } from "./Edge.js";
-import {
-  AnimationOptions,
-  ANIMATION_CSS,
-  assignDelays,
-  edgeKey,
-  charge,
-  chargeLine,
-  recoil,
-  CHARGE_MS,
-} from "./animation.js";
-
-export {
-  Gitgraph,
-  GitgraphCore,
-  type GitgraphProps,
-  type GitgraphState,
-  TemplateName,
-  templateExtend,
-  MergeStyle,
-  Mode,
-  Orientation,
-  type CommitOptions,
-  type BranchOptions,
-  type TagOptions,
-  type MergeOptions,
-  type Branch,
-  type EdgeProps,
-};
+export { Gitgraph, type GitgraphProps };
 
 type GitgraphProps = GitgraphPropsWithChildren | GitgraphPropsWithGraph;
 
@@ -66,11 +33,11 @@ interface GitgraphPropsBase {
 
 interface GitgraphPropsWithChildren extends GitgraphPropsBase {
   options?: GitgraphOptions;
-  children: (gitgraph: GitgraphUserApi<ReactSvgElement>) => void;
+  children: (gitgraph: GitgraphUserApi) => void;
 }
 
 interface GitgraphPropsWithGraph extends GitgraphPropsBase {
-  graph: GitgraphCore<ReactSvgElement>;
+  graph: GitgraphCore;
 }
 
 function isPropsWithGraph(
@@ -80,36 +47,24 @@ function isPropsWithGraph(
 }
 
 interface GitgraphState {
-  commits: Array<CommitCore<ReactSvgElement>>;
-  branchesPaths: BranchesPaths<ReactSvgElement>;
+  commits: CommitCore[];
+  branchesPaths: BranchesPaths;
   commitMessagesX: number;
-  // Store a map to replace commits y with the correct value,
-  // including the message offset. Allows custom, flexible message height.
-  // E.g. {20: 30} means for commit: y=20 -> y=30
-  // Offset should be computed when graph is rendered (componentDidUpdate).
-  commitYWithOffsets: { [key: number]: number };
+  // Computed once the graph is in the DOM (componentDidUpdate).
+  commitYWithOffsets: CommitYOffsets;
   shouldRecomputeOffsets: boolean;
-  currentCommitOver: CommitCore<ReactSvgElement> | null;
+  currentCommitOver: CommitCore | null;
 }
 
 class Gitgraph extends React.Component<GitgraphProps, GitgraphState> {
-  public static defaultProps: Partial<GitgraphProps> = {
-    options: {},
-  };
-
-  private gitgraph: GitgraphCore<ReactSvgElement>;
+  private gitgraph: GitgraphCore;
   private $graph = React.createRef<SVGSVGElement>();
   private $commits = React.createRef<SVGGElement>();
   // Animation delay (ms) of each commit hash and edge key, set once.
   private delays = new Map<string, number>();
   // Commits added after the first render: they land with an impact.
   private added = new Set<string>();
-  private pendingImpacts: Array<{
-    /** When the commit lands, in ms. */
-    delay: number;
-    /** Parents that charge before the line shoots out. */
-    parents: Array<CommitCore<ReactSvgElement>>;
-  }> = [];
+  private pendingImpacts: Impact[] = [];
   private unsubscribe = () => {};
   private isBuilt = false;
 
@@ -117,7 +72,7 @@ class Gitgraph extends React.Component<GitgraphProps, GitgraphState> {
     super(props);
     this.gitgraph = isPropsWithGraph(props)
       ? props.graph
-      : new GitgraphCore<ReactSvgElement>(props.options);
+      : new GitgraphCore(props.options);
     // A `graph` may already hold commits: show them without waiting for a change.
     this.state = {
       ...this.fromRenderedData(this.gitgraph.getRenderedData()),
@@ -189,30 +144,25 @@ class Gitgraph extends React.Component<GitgraphProps, GitgraphState> {
   }
 
   public componentDidUpdate() {
-    this.playImpacts();
-
-    if (this.$graph.current) {
-      const { height, width } = this.$graph.current.getBBox();
-      this.$graph.current.setAttribute(
-        "width",
-        // Add `Tooltip.padding` so we don't crop the tooltip text.
-        // Add `BranchLabel.paddingX` so we don't cut branch label.
-        (width + Tooltip.padding + BranchLabel.paddingX).toString(),
-      );
-      this.$graph.current.setAttribute(
-        "height",
-        // Add `Tooltip.padding` so we don't crop tooltip text
-        // Add `BranchLabel.paddingY` so we don't crop branch label.
-        (height + Tooltip.padding + BranchLabel.paddingY).toString(),
-      );
+    const svg = this.$graph.current;
+    const impacts = this.pendingImpacts.splice(0);
+    if (svg && this.timing) {
+      const { isVertical, isReverse } = this.gitgraph;
+      const direction: [number, number] = isVertical
+        ? [0, isReverse ? 1 : -1]
+        : [isReverse ? -1 : 1, 0];
+      playImpacts(svg, impacts, direction, this.timing.duration);
     }
+    if (svg) sizeSvg(svg);
 
     if (!this.state.shouldRecomputeOffsets) return;
     if (!this.$commits.current) return;
 
-    const commits = Array.from(this.$commits.current.children);
     this.setState({
-      commitYWithOffsets: this.computeOffsets(commits),
+      commitYWithOffsets: computeOffsets(
+        Array.from(this.$commits.current.children),
+        this.gitgraph.orientation === Orientation.VerticalReverse,
+      ),
       shouldRecomputeOffsets: false,
     });
   }
@@ -257,44 +207,7 @@ class Gitgraph extends React.Component<GitgraphProps, GitgraphState> {
     };
   }
 
-  // Added commit: its parents charge (dot + incoming line), then the whole
-  // graph jolts when it lands. JS because these play on elements that are
-  // already mounted, where a CSS animation can't restart per commit.
-  private playImpacts() {
-    const svg = this.$graph.current;
-    const impacts = this.pendingImpacts.splice(0);
-    if (!svg || !svg.animate || !impacts.length) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-    const { isVertical, isReverse } = this.gitgraph;
-    const [dx, dy] = isVertical
-      ? [0, isReverse ? 1 : -1]
-      : [isReverse ? -1 : 1, 0];
-    const duration = this.timing!.duration;
-    impacts.forEach(({ delay, parents }) => {
-      const chargeAt = Math.max(0, delay - duration - CHARGE_MS);
-      parents.forEach((parent) => {
-        const color = parent.style.dot.color as string;
-        const dot = svg.querySelector(`[data-hash="${parent.hash}"] .gg-dot`);
-        if (dot) {
-          const [frames, options] = charge(color);
-          dot.animate(frames, { ...options, delay: chargeAt });
-        }
-        svg
-          .querySelectorAll<SVGPathElement>(
-            `.gg-edge[data-to="${parent.hash}"]`,
-          )
-          .forEach((line) => {
-            const width = Number(line.getAttribute("stroke-width")) || 2;
-            const [frames, options] = chargeLine(color, width);
-            line.animate(frames, { ...options, delay: chargeAt });
-          });
-      });
-      svg.animate(recoil(dx, dy), { delay, duration: 420 });
-    });
-  }
-
-  private setCurrentCommitOver(v: CommitCore<ReactSvgElement> | null) {
+  private setCurrentCommitOver(v: CommitCore | null) {
     this.setState({ currentCommitOver: v });
   }
 
@@ -350,56 +263,6 @@ class Gitgraph extends React.Component<GitgraphProps, GitgraphState> {
           </React.Fragment>
         ))}
       </g>
-    );
-  }
-
-  private computeOffsets(
-    commits: Element[],
-  ): GitgraphState["commitYWithOffsets"] {
-    let totalOffsetY = 0;
-
-    // In VerticalReverse orientation, commits are in the same order in the DOM.
-    const orientedCommits =
-      this.gitgraph.orientation === Orientation.VerticalReverse
-        ? commits
-        : commits.reverse();
-
-    return orientedCommits.reduce<GitgraphState["commitYWithOffsets"]>(
-      (newOffsets, commit) => {
-        const commitY = parseInt(
-          commit.getAttribute("transform")!.split(",")[1].slice(0, -1),
-          10,
-        );
-
-        const firstForeignObject =
-          commit.getElementsByTagName("foreignObject")[0];
-        const customHtmlMessage =
-          firstForeignObject && firstForeignObject.firstElementChild;
-
-        let messageHeight = 0;
-        if (customHtmlMessage) {
-          const height = customHtmlMessage.getBoundingClientRect().height;
-          const marginTopInPx =
-            window.getComputedStyle(customHtmlMessage).marginTop || "0px";
-          const marginTop = parseInt(marginTopInPx.replace("px", ""), 10);
-
-          messageHeight = height + marginTop;
-        }
-
-        // Force the height of the foreignObject (browser issue)
-        if (firstForeignObject) {
-          firstForeignObject.setAttribute("height", `${messageHeight}px`);
-        }
-
-        newOffsets[commitY] = commitY + totalOffsetY;
-
-        // Increment total offset after setting the offset
-        // => offset next commits accordingly.
-        totalOffsetY += messageHeight;
-
-        return newOffsets;
-      },
-      {},
     );
   }
 

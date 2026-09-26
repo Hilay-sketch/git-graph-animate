@@ -11,11 +11,11 @@ import { withoutUndefinedKeys, Omit } from "../utils.js";
 
 export { BranchUserApi, type GitgraphMergeOptions };
 
-interface GitgraphMergeOptions<TNode> {
+interface GitgraphMergeOptions {
   /**
    * Branch or branch name.
    */
-  branch: string | BranchUserApi<TNode>;
+  branch: string | BranchUserApi;
   /**
    * If `true`, perform a fast-forward merge (if possible).
    */
@@ -23,29 +23,23 @@ interface GitgraphMergeOptions<TNode> {
   /**
    * Commit options.
    */
-  commitOptions?: GitgraphCommitOptions<TNode>;
+  commitOptions?: GitgraphCommitOptions;
 }
 
-type BranchTagOptions<TNode> = Omit<GitgraphTagOptions<TNode>, ["ref"]>;
+type BranchTagOptions = Omit<GitgraphTagOptions, ["ref"]>;
 
-class BranchUserApi<TNode> {
+class BranchUserApi {
   /**
    * Name of the branch.
    * It needs to be public to be used when we merge another branch.
    */
   public readonly name: Branch["name"];
 
-  // tslint:disable:variable-name - Prefix `_` = explicitly private for JS users
-  private _branch: Branch<TNode>;
-  private _graph: GitgraphCore<TNode>;
+  private _branch: Branch;
+  private _graph: GitgraphCore;
   private _onGraphUpdate: () => void;
-  // tslint:enable:variable-name
 
-  constructor(
-    branch: Branch<TNode>,
-    graph: GitgraphCore<TNode>,
-    onGraphUpdate: () => void,
-  ) {
+  constructor(branch: Branch, graph: GitgraphCore, onGraphUpdate: () => void) {
     this._branch = branch;
     this.name = branch.name;
     this._graph = graph;
@@ -57,21 +51,19 @@ class BranchUserApi<TNode> {
    *
    * @param options Options of the branch
    */
-  public branch(
-    options: Omit<GitgraphBranchOptions<TNode>, "from">,
-  ): BranchUserApi<TNode>;
+  public branch(options: Omit<GitgraphBranchOptions, "from">): BranchUserApi;
   /**
    * Create a new branch (as `git branch`).
    *
    * @param name Name of the created branch
    */
-  public branch(name: string): BranchUserApi<TNode>;
-  public branch(args: any): BranchUserApi<TNode> {
+  public branch(name: string): BranchUserApi;
+  public branch(args: any): BranchUserApi {
     if (this._branch.isDeleted() && !this._isReferenced()) {
       throw new Error(`Cannot branch from the deleted branch "${this.name}"`);
     }
 
-    const options: GitgraphBranchOptions<TNode> =
+    const options: GitgraphBranchOptions =
       typeof args === "string" ? { name: args } : args;
 
     options.from = this;
@@ -90,8 +82,8 @@ class BranchUserApi<TNode> {
    *
    * @param options Options of the commit
    */
-  public commit(options?: GitgraphCommitOptions<TNode>): this;
-  public commit(options?: GitgraphCommitOptions<TNode> | string): this {
+  public commit(options?: GitgraphCommitOptions): this;
+  public commit(options?: GitgraphCommitOptions | string): this {
     if (this._branch.isDeleted() && !this._isReferenced()) {
       throw new Error(`Cannot commit on the deleted branch "${this.name}"`);
     }
@@ -120,12 +112,9 @@ class BranchUserApi<TNode> {
       throw new Error(`Cannot delete the checked out branch "${this.name}"`);
     }
 
-    const branchCommits = (function* (
-      graph: GitgraphCore<TNode>,
-      branch: Branch<TNode>,
-    ) {
+    const branchCommits = (function* (graph: GitgraphCore, branch: Branch) {
       const lookupCommit = (
-        graph: GitgraphCore<TNode>,
+        graph: GitgraphCore,
         commitHash: Commit["hash"] | undefined,
       ) => {
         return graph.commits.find(({ hash }) => hash === commitHash);
@@ -170,7 +159,7 @@ class BranchUserApi<TNode> {
    * @param branch Branch
    * @param subject Merge commit message
    */
-  public merge(branch: BranchUserApi<TNode>, subject?: string): this;
+  public merge(branch: BranchUserApi, subject?: string): this;
   /**
    * Create a merge commit.
    *
@@ -183,14 +172,14 @@ class BranchUserApi<TNode> {
    *
    * @param options Options of the merge
    */
-  public merge(options: GitgraphMergeOptions<TNode>): this;
+  public merge(options: GitgraphMergeOptions): this;
   public merge(...args: any[]): this {
     if (this._branch.isDeleted() && !this._isReferenced()) {
       throw new Error(`Cannot merge to the deleted branch "${this.name}"`);
     }
 
     let options = args[0];
-    if (!isBranchMergeOptions<TNode>(options)) {
+    if (!isBranchMergeOptions(options)) {
       options = {
         branch: args[0],
         fastForward: false,
@@ -198,7 +187,7 @@ class BranchUserApi<TNode> {
       };
     }
     const { branch, fastForward, commitOptions } =
-      options as GitgraphMergeOptions<TNode>;
+      options as GitgraphMergeOptions;
 
     const branchName = typeof branch === "string" ? branch : branch.name;
     const branchLastCommitHash = this._graph.refs.getCommit(branchName);
@@ -240,13 +229,13 @@ class BranchUserApi<TNode> {
    *
    * @param options Options of the tag
    */
-  public tag(options: BranchTagOptions<TNode>): this;
+  public tag(options: BranchTagOptions): this;
   /**
    * Tag the last commit of the branch.
    *
    * @param name Name of the tag
    */
-  public tag(name: BranchTagOptions<TNode>["name"]): this;
+  public tag(name: BranchTagOptions["name"]): this;
   public tag(options?: any): this {
     if (this._branch.isDeleted() && !this._isReferenced()) {
       throw new Error(`Cannot tag on the deleted branch "${this.name}"`);
@@ -280,10 +269,8 @@ class BranchUserApi<TNode> {
     return this;
   }
 
-  // tslint:disable:variable-name - Prefix `_` = explicitly private for JS users
-
   private _commitWithParents(
-    options: GitgraphCommitOptions<TNode>,
+    options: GitgraphCommitOptions,
     parents: string[],
   ): void {
     const parentOnSameBranch = this._graph.refs.getCommit(this._branch.name);
@@ -383,11 +370,10 @@ class BranchUserApi<TNode> {
         .includes(this.name)
     );
   }
-  // tslint:enable:variable-name
 }
 
-function isBranchMergeOptions<TNode>(
-  options: GitgraphMergeOptions<TNode> | any,
-): options is GitgraphMergeOptions<TNode> {
+function isBranchMergeOptions(
+  options: GitgraphMergeOptions | any,
+): options is GitgraphMergeOptions {
   return typeof options === "object" && !(options instanceof BranchUserApi);
 }

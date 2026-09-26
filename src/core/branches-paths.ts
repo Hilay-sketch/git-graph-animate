@@ -10,23 +10,23 @@ export {
   toSvgEdges,
 };
 
-type BranchesPaths<TNode> = Map<Branch<TNode>, Coordinate[][]>;
+type BranchesPaths = Map<Branch, Coordinate[][]>;
 
 interface Coordinate {
   x: number;
   y: number;
 }
 
-interface Edge<TNode> {
+interface Edge {
   /** Parent commit hash (or `x,y` if no commit is there) */
   from: string;
   /** Child commit hash (or `x,y` if no commit is there) */
   to: string;
-  branch: Branch<TNode>;
+  branch: Branch;
   d: string;
 }
 
-type InternalBranchesPaths<TNode> = Map<Branch<TNode>, InternalCoordinate[]>;
+type InternalBranchesPaths = Map<Branch, InternalCoordinate[]>;
 
 interface InternalCoordinate extends Coordinate {
   mergeCommit?: boolean;
@@ -41,25 +41,25 @@ interface InternalCoordinate extends Coordinate {
  * Main benefit is we can split computation in smaller steps without
  * passing around parameters (we can rely on private data).
  */
-class BranchesPathsCalculator<TNode> {
-  private commits: Array<Commit<TNode>>;
-  private branches: Map<Branch["name"], Branch<TNode>>;
+class BranchesPathsCalculator {
+  private commits: Array<Commit>;
+  private branches: Map<Branch["name"], Branch>;
   private commitSpacing: CommitStyleBase["spacing"];
   private isGraphVertical: boolean;
   private isGraphReverse: boolean;
-  private createDeletedBranch: () => Branch<TNode>;
-  private branchesPaths: InternalBranchesPaths<TNode> = new Map<
-    Branch<TNode>,
+  private createDeletedBranch: () => Branch;
+  private branchesPaths: InternalBranchesPaths = new Map<
+    Branch,
     InternalCoordinate[]
   >();
 
   constructor(
-    commits: Array<Commit<TNode>>,
-    branches: Map<Branch["name"], Branch<TNode>>,
+    commits: Array<Commit>,
+    branches: Map<Branch["name"], Branch>,
     commitSpacing: CommitStyleBase["spacing"],
     isGraphVertical: boolean,
     isGraphReverse: boolean,
-    createDeletedBranch: () => Branch<TNode>,
+    createDeletedBranch: () => Branch,
   ) {
     this.commits = commits;
     this.branches = branches;
@@ -72,7 +72,7 @@ class BranchesPathsCalculator<TNode> {
   /**
    * Compute branches paths for graph.
    */
-  public execute(): BranchesPaths<TNode> {
+  public execute(): BranchesPaths {
     this.fromCommits();
     this.withMergeCommits();
     return this.smoothBranchesPaths();
@@ -161,7 +161,7 @@ class BranchesPathsCalculator<TNode> {
   /**
    * Retrieve deleted branch from calculator's branches paths.
    */
-  private getDeletedBranchInPath(): Branch<TNode> | undefined {
+  private getDeletedBranchInPath(): Branch | undefined {
     return Array.from(this.branchesPaths.keys()).find((branch) =>
       branch.isDeleted(),
     );
@@ -170,8 +170,8 @@ class BranchesPathsCalculator<TNode> {
   /**
    * Smooth all paths by putting points on each row.
    */
-  private smoothBranchesPaths(): BranchesPaths<TNode> {
-    const branchesPaths = new Map<Branch<TNode>, Coordinate[][]>();
+  private smoothBranchesPaths(): BranchesPaths {
+    const branchesPaths = new Map<Branch, Coordinate[][]>();
 
     this.branchesPaths.forEach((points, branch) => {
       if (points.length <= 1) {
@@ -280,16 +280,16 @@ class BranchesPathsCalculator<TNode> {
  *
  * @param mapPoint Applied to each point when building `d` (e.g. message offsets)
  */
-function toSvgEdges<TNode>(
-  branchesPaths: BranchesPaths<TNode>,
-  commits: Array<Commit<TNode>>,
+function toSvgEdges(
+  branchesPaths: BranchesPaths,
+  commits: Array<Commit>,
   isBezier: boolean,
   isVertical: boolean,
   mapPoint: (point: Coordinate) => Coordinate = (point) => point,
-): Array<Edge<TNode>> {
+): Array<Edge> {
   const commitAt = new Map(commits.map((c) => [`${c.x},${c.y}`, c]));
   const idOf = ({ x, y }: Coordinate) => commitAt.get(`${x},${y}`)?.hash;
-  const edges: Array<Edge<TNode>> = [];
+  const edges: Array<Edge> = [];
 
   branchesPaths.forEach((paths, branch) => {
     paths.forEach((path) => {

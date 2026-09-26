@@ -1,8 +1,8 @@
 import * as React from "react";
-import { Commit } from "./core/index.js";
+import { Commit } from "../core/index.js";
 
 export interface DotProps {
-  commit: Commit<React.ReactElement<SVGElement>>;
+  commit: Commit;
   onMouseOver: () => void;
   onMouseOut: () => void;
 }

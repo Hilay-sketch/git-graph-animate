@@ -2,8 +2,8 @@ import { Commit } from "../commit.js";
 
 import { RegularGraphRows } from "./regular.js";
 
-export class CompactGraphRows<TNode> extends RegularGraphRows<TNode> {
-  protected computeRowsFromCommits(commits: Array<Commit<TNode>>): void {
+export class CompactGraphRows extends RegularGraphRows {
+  protected computeRowsFromCommits(commits: Array<Commit>): void {
     commits.forEach((commit, i) => {
       let newRow = i;
 

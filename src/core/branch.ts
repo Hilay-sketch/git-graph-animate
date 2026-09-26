@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Commit, CommitRenderOptions } from "./commit.js";
 import { GitgraphCore } from "./gitgraph.js";
 import { BranchUserApi } from "./user-api/branch-user-api.js";
@@ -12,21 +13,21 @@ export {
   Branch,
 };
 
-interface BranchCommitDefaultOptions<TNode> extends CommitRenderOptions<TNode> {
+interface BranchCommitDefaultOptions extends CommitRenderOptions {
   author?: string;
   subject?: string;
   style?: TemplateOptions["commit"];
 }
 
-interface BranchRenderOptions<TNode> {
-  renderLabel?: (branch: Branch<TNode>) => TNode;
+interface BranchRenderOptions {
+  renderLabel?: (branch: Branch) => ReactNode;
 }
 
-interface BranchOptions<TNode = SVGElement> extends BranchRenderOptions<TNode> {
+interface BranchOptions extends BranchRenderOptions {
   /**
    * Gitgraph constructor
    */
-  gitgraph: GitgraphCore<TNode>;
+  gitgraph: GitgraphCore;
   /**
    * Branch name
    */
@@ -42,7 +43,7 @@ interface BranchOptions<TNode = SVGElement> extends BranchRenderOptions<TNode> {
   /**
    * Default options for commits
    */
-  commitDefaultOptions?: BranchCommitDefaultOptions<TNode>;
+  commitDefaultOptions?: BranchCommitDefaultOptions;
   /**
    * On graph update.
    */
@@ -51,18 +52,18 @@ interface BranchOptions<TNode = SVGElement> extends BranchRenderOptions<TNode> {
 
 const DELETED_BRANCH_NAME = "";
 
-class Branch<TNode = SVGElement> {
+class Branch {
   public name: BranchOptions["name"];
   public style: BranchStyle;
   public computedColor?: BranchStyle["color"];
   public parentCommitHash: BranchOptions["parentCommitHash"];
-  public commitDefaultOptions: BranchCommitDefaultOptions<TNode>;
-  public renderLabel: BranchOptions<TNode>["renderLabel"];
+  public commitDefaultOptions: BranchCommitDefaultOptions;
+  public renderLabel: BranchOptions["renderLabel"];
 
-  private gitgraph: GitgraphCore<TNode>;
+  private gitgraph: GitgraphCore;
   private onGraphUpdate: () => void;
 
-  constructor(options: BranchOptions<TNode>) {
+  constructor(options: BranchOptions) {
     this.gitgraph = options.gitgraph;
     this.name = options.name;
     this.style = options.style;
@@ -75,7 +76,7 @@ class Branch<TNode = SVGElement> {
   /**
    * Return the API to manipulate Gitgraph branch as a user.
    */
-  public getUserApi(): BranchUserApi<TNode> {
+  public getUserApi(): BranchUserApi {
     return new BranchUserApi(this, this.gitgraph, this.onGraphUpdate);
   }
 
@@ -87,11 +88,11 @@ class Branch<TNode = SVGElement> {
   }
 }
 
-function createDeletedBranch<TNode>(
-  gitgraph: GitgraphCore<TNode>,
+function createDeletedBranch(
+  gitgraph: GitgraphCore,
   style: BranchStyle,
   onGraphUpdate: () => void,
-): Branch<TNode> {
+): Branch {
   return new Branch({
     name: DELETED_BRANCH_NAME,
     gitgraph,

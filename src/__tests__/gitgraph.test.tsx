@@ -1,10 +1,10 @@
 import * as React from "react";
 import { renderToString } from "react-dom/server";
-import { Gitgraph, GitgraphCore } from "../Gitgraph.js";
+import { Gitgraph, GitgraphCore } from "../index.js";
 
 describe("Gitgraph", () => {
   it("renders commits and lines of a given graph", () => {
-    const graph = new GitgraphCore<React.ReactElement<SVGElement>>();
+    const graph = new GitgraphCore();
     graph.getUserApi().branch("master").commit("one").commit("two");
 
     const html = renderToString(<Gitgraph graph={graph} />);
