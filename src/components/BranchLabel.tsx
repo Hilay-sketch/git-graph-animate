@@ -1,0 +1,94 @@
+import * as React from "react";
+import { Branch, Commit, GitgraphCore } from "../core/index.js";
+
+export const BRANCH_LABEL_PADDING_X = 10;
+export const BRANCH_LABEL_PADDING_Y = 5;
+
+interface BranchLabelBaseProps {
+  branch: Branch;
+  commit: Commit;
+}
+
+function DefaultBranchLabel({ branch, commit }: BranchLabelBaseProps) {
+  const [textSizing, setTextSizing] = React.useState({
+    textWidth: 0,
+    textHeight: 0,
+  });
+
+  const getSizing = React.useCallback((node: SVGGraphicsElement | null) => {
+    if (!node) return;
+    const box = node.getBBox();
+    setTextSizing({ textWidth: box.width, textHeight: box.height });
+  }, []);
+
+  const boxWidth = textSizing.textWidth + 2 * BRANCH_LABEL_PADDING_X;
+  const boxHeight = textSizing.textHeight + 2 * BRANCH_LABEL_PADDING_Y;
+
+  return (
+    <g>
+      <rect
+        stroke={branch.style.label.strokeColor || commit.style.color}
+        fill={branch.style.label.bgColor}
+        rx={branch.style.label.borderRadius}
+        width={boxWidth}
+        height={boxHeight}
+      />
+      <text
+        ref={getSizing}
+        fill={branch.style.label.color || commit.style.color}
+        style={{ font: branch.style.label.font }}
+        alignmentBaseline="middle"
+        dominantBaseline="middle"
+        x={BRANCH_LABEL_PADDING_X}
+        y={boxHeight / 2}
+      >
+        {branch.name}
+      </text>
+    </g>
+  );
+}
+
+interface BranchLabelProps extends BranchLabelBaseProps {
+  gitgraph: GitgraphCore;
+  branchLabelX: number;
+}
+
+export const BranchLabel = React.forwardRef<SVGGElement, BranchLabelProps>(
+  (props, ref) => {
+    const { branch, commit, branchLabelX } = props;
+    if (!branch.style.label.display) return null;
+
+    if (!props.gitgraph.branchLabelOnEveryCommit) {
+      const commitHash = props.gitgraph.refs.getCommit(branch.name);
+      if (commit.hash !== commitHash) return null;
+    }
+
+    // For the moment, we don't handle multiple branch labels.
+    // To do so, we'd need to reposition each of them appropriately.
+    if (commit.branchToDisplay !== branch.name) return null;
+
+    const branchLabel = branch.renderLabel ? (
+      branch.renderLabel(branch)
+    ) : (
+      <DefaultBranchLabel branch={branch} commit={commit} />
+    );
+
+    if (props.gitgraph.isVertical) {
+      return (
+        <g ref={ref} transform={`translate(${branchLabelX || 0}, 0)`}>
+          {branchLabel}
+        </g>
+      );
+    } else {
+      const commitDotSize = commit.style.dot.size * 2;
+      const horizontalMarginTop = 10;
+      const y = commitDotSize + horizontalMarginTop;
+
+      return (
+        <g ref={ref} transform={`translate(${commit.x}, ${y})`}>
+          {branchLabel}
+        </g>
+      );
+    }
+  },
+);

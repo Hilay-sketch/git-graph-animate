@@ -1,66 +1,59 @@
 {
-  "name": "gitgraph.js-monorepo",
-  "private": true,
-  "version": "2.0.0-monorepo",
-  "author": "Nicolas Carlo <nicolascarlo.espeon@gmail.com>",
-  "description": "A JavaScript library to draw pretty git graphs",
-  "contributors": [
-    {
-      "name": "Fabien Bernard",
-      "email": "fabien0102@gmail.com"
-    }
-  ],
+  "name": "@gamzo/git-graph",
+  "version": "0.1.4",
+  "description": "Draw pretty git graphs with React",
+  "license": "MIT",
+  "homepage": "https://gitgraph-showcase.vercel.app/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/nicoespeon/gitgraph.js"
+    "url": "git+https://github.com/Hilay-sketch/gitgraph.js.git"
   },
-  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Hilay-sketch/gitgraph.js/issues"
+  },
   "keywords": [
+    "react",
     "git",
-    "graph",
-    "javascript"
+    "graph"
   ],
+  "type": "module",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib"
+  ],
+  "sideEffects": false,
   "scripts": {
-    "lerna": "lerna",
-    "build": "lerna run build --scope=@gitgraph/{core,react,js,node} --stream",
-    "watch": "lerna run watch --stream",
-    "storybook": "sleep 3 && lerna run storybook --stream",
-    "develop": "concurrently npm:watch npm:storybook",
-    "website": "lerna run start --scope=@gitgraph/website --stream",
-    "deploy:website": "lerna run deploy --scope=@gitgraph/website --stream",
-    "lint": "eslint packages/**/src/**/*.{ts,tsx}",
-    "lint:fix": "npm run lint -- --fix",
-    "pretest": "npm run build",
-    "test": "jest",
-    "test:e2e": "lerna run test:e2e --stream",
-    "test:ci": "CI=true npm run test && npm run test:e2e",
-    "clean": "lerna clean",
-    "all-contributors": "all-contributors"
+    "build": "node -e \"require('fs').rmSync('lib',{recursive:true,force:true})\" && tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --globals",
+    "format": "prettier --write src",
+    "prepare": "npm run build",
+    "knip": "knip",
+    "example": "vite example",
+    "prepublishOnly": "pnpm test && pnpm build"
+  },
+  "peerDependencies": {
+    "react": ">=18"
   },
   "devDependencies": {
-    "@types/jest": "23.1.4",
-    "@typescript-eslint/eslint-plugin": "^4.8.2",
-    "@typescript-eslint/parser": "^4.8.2",
-    "all-contributors-cli": "6.16.0",
-    "concurrently": "4.1.0",
-    "eslint": "^7.14.0",
-    "eslint-config-prettier": "^6.15.0",
-    "eslint-plugin-prettier": "^3.1.4",
-    "eslint-plugin-react": "^7.21.5",
-    "husky": "1.1.2",
-    "jest": "23.3.0",
-    "lerna": "3.13.1",
-    "prettier": "^2.2.0",
-    "pretty-quick": "^3.1.0",
-    "ts-jest": "23.0.0",
-    "typescript": "3.5.1"
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "knip": "^6.38.0",
+    "prettier": "^3.9.9",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.9.3",
+    "vite": "^8.3.1",
+    "vitest": "^4"
   },
-  "workspaces": [
-    "packages/*"
-  ],
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run lint:fix && pretty-quick --staged"
-    }
-  }
+  "packageManager": "pnpm@11.17.0"
 }
