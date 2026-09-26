@@ -1,8 +1,16 @@
 {
   "name": "@gamzo/git-graph",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Draw pretty git graphs with React",
   "license": "MIT",
+  "homepage": "https://gitgraph-showcase.vercel.app/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Hilay-sketch/gitgraph.js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Hilay-sketch/gitgraph.js/issues"
+  },
   "keywords": [
     "react",
     "git",

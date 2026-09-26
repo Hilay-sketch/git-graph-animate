@@ -2,6 +2,8 @@
 
 Animated git graphs for React. Zero dependencies, TypeScript types, SSR-ready.
 
+**[Live demo](https://gitgraph-showcase.vercel.app/)** · [Try your own graph](https://gitgraph-showcase.vercel.app/#make-it-yours)
+
 ```sh
 npm install @gamzo/git-graph
 ```
